@@ -747,10 +747,8 @@ function stepEnv(st, actionId){
   }
   else if(actionId==="toCharger"){
     if(onCharger && st.battery < 100){
-      const lowBefore = st.battery < 60;
       st.battery = Math.min(100, st.battery + PARAMS.chargeRate); st.time++;
       info.event = "در حال شارژ… +" + faNum(PARAMS.chargeRate) + "٪ باتری";
-      if(lowBefore) info.reward += 0.05;
       finishStep(st, info); return info;
     }
     if(onCharger && st.battery >= 100){
@@ -791,7 +789,7 @@ function stepEnv(st, actionId){
     let n = st.carrying.length; for(const s of st.survivors){ if(n<=0) break; if(s.picked && !s.delivered){ s.delivered = true; n--; } }
     st.score += pts; st.deliveredCount += st.carrying.length; info.deliveredNow = st.carrying.length;
     info.event = faNum(st.carrying.length) + " مصدوم به پایگاه تحویل شد (+" + faNum(pts) + " امتیاز)";
-    info.reward += pts * 0.3; st.carrying = [];
+    info.reward += pts * 0.4; st.carrying = [];
   }
   finishStep(st, info);
   return info;
@@ -799,7 +797,7 @@ function stepEnv(st, actionId){
 function finishStep(st, info){
   if(st.survivors.every(s=>s.delivered)){ st.over = true; st.result = "win"; info.reward += 15; return; }
   const onCharger = st.chargers.some(c=>c.x===st.robot.x && c.y===st.robot.y);
-  if(st.battery <= 0 && !onCharger){ st.over = true; st.result = "battery"; info.reward -= 15; return; }
+  if(st.battery <= 0 && !onCharger){ st.over = true; st.result = "battery"; info.reward -= 8; return; }
   if(st.time >= st.maxTime){ st.over = true; st.result = "time"; info.reward -= 2; }
 }
 
@@ -1153,14 +1151,18 @@ function timeBin(t){
   if(t <= 75) return 1;
   return 2;
 }
+function priorityBin(obs){
+  if(obs.crit) return obs.critD <= 3 ? 0 : 1;
+  if(obs.urg && obs.urgD <= 3) return 2;
+  return 3;
+}
 function qStateKey(obs, st){
   const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
-  return [batteryBin(obs.battery), carry, distBin(obs.nearestD), distBin(obs.crit ? obs.critD : Infinity), timeBin(obs.timeLeft), distBin(obs.chargerD)].join("|");
+  return [batteryBin(obs.battery), carry, distBin(obs.nearestD), priorityBin(obs), timeBin(obs.timeLeft), distBin(obs.chargerD)].join("|");
 }
 function qCoarseKey(obs){
   const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
-  const critZone = !obs.crit ? 2 : obs.critD <= 3 ? 0 : 1;
-  return [batteryBin(obs.battery), carry, critZone].join("|");
+  return [batteryBin(obs.battery), carry, priorityBin(obs)].join("|");
 }
 function qRow(table, k){
   if(!table[k]) table[k] = new Array(QACT.length).fill(0);
@@ -1334,7 +1336,12 @@ function drawCurve(){
 const BATT_TXT = ["باتری خیلی کم است (۰ تا ۲۰٪)", "باتری کم است (۲۰ تا ۴۰٪)", "باتری متوسط است (۴۰ تا ۶۰٪)", "باتری خوب است (۶۰ تا ۸۰٪)", "باتری پر است (۸۰ تا ۱۰۰٪)"];
 const CARRY_TXT = ["ربات هیچ مصدومی حمل نمی‌کند", "ربات مصدوم حمل می‌کند ولی ظرفیتش پر نیست", "ظرفیت حمل ربات پر است"];
 const NEAR_TXT = ["نزدیک‌ترین مصدوم خیلی نزدیک است (حداکثر ۲ خانه)", "نزدیک‌ترین مصدوم در فاصلهٔ متوسط است (۳ تا ۵ خانه)", "نزدیک‌ترین مصدوم دور است (۶ خانه یا بیشتر) یا مصدومی نمانده است"];
-const CRIT_TXT = ["مصدوم بحرانی خیلی نزدیک است (حداکثر ۲ خانه)", "مصدوم بحرانی در فاصلهٔ متوسط است (۳ تا ۵ خانه)", "مصدوم بحرانی دور است (۶ خانه یا بیشتر) یا مصدوم بحرانی‌ای در نقشه نمانده است"];
+const CRIT_TXT = [
+  "مصدوم بحرانی نزدیک است (حداکثر ۳ خانه)",
+  "مصدوم بحرانی در نقشه هست ولی دور است (بیش از ۳ خانه)",
+  "مصدوم بحرانی نمانده ولی مصدوم فوری نزدیک است (حداکثر ۳ خانه)",
+  "مصدوم بحرانی نمانده و مصدوم فوری نزدیکی هم نیست"
+];
 const TIME_TXT = ["زمان کمی تا پایان مأموریت مانده است (حداکثر ۲۵ قدم)", "زمان باقی‌مانده متوسط است (۲۶ تا ۷۵ قدم)", "زمان زیادی تا پایان مأموریت مانده است (بیش از ۷۵ قدم)"];
 const CHARGER_TXT = ["شارژر خیلی نزدیک است (حداکثر ۲ خانه)", "شارژر در فاصلهٔ متوسط است (۳ تا ۵ خانه)", "شارژر دور است (۶ خانه یا بیشتر)"];
 function statePhrase(stateKeyStr){
