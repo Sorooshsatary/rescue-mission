@@ -457,6 +457,9 @@
 
 <script>
 "use strict";
+/* نسخهٔ بکر HTML صفحه، پیش از هر تغییری در DOM: دکمهٔ دانلود همین نسخه را می‌فرستد،
+   نه DOM زندهٔ لحظهٔ کلیک را (تا نتایج، لاگ‌ها و وضعیت لحظه‌ای جلسه داخل فایل دانلودی نرود) */
+const PRISTINE_HTML = "<!doctype html>\n" + document.documentElement.outerHTML;
 /* ================= ابزارها ================= */
 const $ = id => document.getElementById(id);
 const FA = "۰۱۲۳۴۵۶۷۸۹";
@@ -884,7 +887,11 @@ function renderHUD(view){
   const fill = $("hudBatt"); fill.style.width = Math.max(0,g.battery) + "%";
   fill.className = "batt-fill" + (g.battery<25 ? " low" : g.battery<50 ? " mid" : "");
 }
-function renderInspector(dec){
+function renderInspector(dec, snapTime){
+  /* snapTime فقط از بازپخش (یا بازگردانی نمای زنده) داده می‌شود: در آن حالت زمانِ همان اسنپ‌شات
+     نشان داده می‌شود و چیزی به لاگ تصمیم‌های زنده اضافه نمی‌شود؛ لاگ فقط در اجرای زنده نوشته می‌شود */
+  const fromReplay = snapTime !== undefined;
+  const shownTime = fromReplay ? snapTime : game.time;
   const obsList = $("obsList"), checkList = $("checkList"), chosen = $("chosenBox");
   if(!dec){
     obsList.innerHTML = '<li><span>وضعیت ربات</span><b>آمادهٔ شروع</b></li>';
@@ -903,7 +910,7 @@ function renderInspector(dec){
     '<li><span>فاصله تا پایگاه</span><b>' + faNum(o.baseD) + ' خانه (هزینهٔ باتری: ' + faNum(o.baseCost) + ')</b></li>' +
     '<li><span>مصدوم فوری نزدیک</span><b>' + (o.urg ? faNum(o.urgD) + " خانه" : "ندارد") + '</b></li>' +
     '<li><span>فاصله تا نزدیک‌ترین شارژر</span><b>' + (o.chargerD === Infinity ? "—" : faNum(o.chargerD) + " خانه") + '</b></li>' +
-    '<li><span>زمان</span><b>' + faNum(game.time) + ' (باقی‌مانده: ' + faNum(Math.max(0, o.timeLeft)) + ' قدم)</b></li>';
+    '<li><span>زمان</span><b>' + faNum(shownTime) + ' (باقی‌مانده: ' + faNum(Math.max(0, o.timeLeft)) + ' قدم)</b></li>';
   checkList.innerHTML = "";
   dec.evals.forEach((e,i)=>{
     const div = document.createElement("div");
@@ -921,9 +928,11 @@ function renderInspector(dec){
     : "قانون " + faNum(dec.ruleIndex+1) + " فعال شد ← اقدام: " + actLabel(dec.actionId);
   if(dec.ineffective && dec.event) chosen.textContent += " — " + dec.event;
   document.querySelectorAll(".rule-card").forEach((c,i)=> c.classList.toggle("active", i === dec.ruleIndex));
-  const log = $("decisionLog"); const li = document.createElement("li");
-  li.innerHTML = "<b>قدم " + faNum(game.time) + ":</b> " + (dec.fallback ? "پیش‌فرض" : "قانون " + faNum(dec.ruleIndex+1)) + " ← " + actLabel(dec.actionId) + (dec.event ? " — " + dec.event : "");
-  log.prepend(li); while(log.children.length > 40) log.lastChild.remove();
+  if(!fromReplay){
+    const log = $("decisionLog"); const li = document.createElement("li");
+    li.innerHTML = "<b>قدم " + faNum(game.time) + ":</b> " + (dec.fallback ? "پیش‌فرض" : "قانون " + faNum(dec.ruleIndex+1)) + " ← " + actLabel(dec.actionId) + (dec.event ? " — " + dec.event : "");
+    log.prepend(li); while(log.children.length > 40) log.lastChild.remove();
+  }
 }
 function renderMissionMsg(){
   const m = $("missionMsg");
@@ -988,10 +997,10 @@ function showReplay(){
   renderAll(snap);
   $("rpSlider").value = rpIdx;
   $("replayInfo").textContent = "قدم " + faNum(rpIdx) + " از " + faNum(history.length-1) + (snap.dec ? " — " + (snap.dec.fallback ? "رفتار پیش‌فرض" : "قانون " + faNum(snap.dec.ruleIndex+1)) + ": " + actLabel(snap.dec.actionId) : " — شروع مأموریت");
-  if(snap.dec) renderInspector(snap.dec); else renderInspector(null);
+  if(snap.dec) renderInspector(snap.dec, snap.time); else renderInspector(null);
 }
 $("replayBtn").addEventListener("click", enterReplay);
-$("replayExit").addEventListener("click", ()=>{ exitReplay(); renderInspector(lastDecision); renderMissionMsg(); });
+$("replayExit").addEventListener("click", ()=>{ exitReplay(); renderInspector(lastDecision, game.time); renderMissionMsg(); });
 $("rpSlider").addEventListener("input", e=>{ rpIdx = Number(e.target.value); showReplay(); });
 $("rpPrev").addEventListener("click", ()=>{ rpIdx = Math.max(0, rpIdx-1); showReplay(); });
 $("rpNext").addEventListener("click", ()=>{ rpIdx = Math.min(history.length-1, rpIdx+1); showReplay(); });
@@ -1085,7 +1094,7 @@ function renderSaved(){
 
 /* ================= دانلود فایل کامل برای اجرای لوکال ================= */
 $("downloadBtn").addEventListener("click", ()=>{
-  const html = "<!doctype html>\n" + document.documentElement.outerHTML;
+  const html = PRISTINE_HTML;
   const blob = new Blob([html], { type:"text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
