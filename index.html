@@ -221,6 +221,13 @@
   .admin-preset-head .nm{ font-weight:800; font-size:15px; }
   .admin-preset-head .sp{ flex:1; }
   .admin-preset-sum{ font-size:12.5px; color:var(--muted); margin-top:4px; line-height:1.9; }
+  /* ---------- مرحله‌بندی ---------- */
+  .stage-badge{ background:color-mix(in srgb, var(--teal) 13%, var(--panel)); border:1px solid var(--teal); color:var(--teal-dark); border-radius:999px; padding:5px 14px; font-size:13.5px; font-weight:800; white-space:nowrap; }
+  .stage-hidden{ display:none !important; }
+  .stage-lock-card{ border:2px dashed color-mix(in srgb, var(--teal) 55%, var(--line)); align-self:start; }
+  .stage-lock-card h2{ margin:0 0 4px; font-size:19px; font-weight:800; }
+  .stage-err{ color:var(--red); font-size:13.5px; font-weight:700; margin:8px 0 0; min-height:1.2em; }
+  .stage-err:empty{ display:none; }
 </style>
 </head>
 <body>
@@ -228,6 +235,7 @@
   <header class="top">
     <h1>مأموریت نجات</h1>
     <p>مغز ربات نجات را خودت طراحی کن: قانون بنویس، اولویت بده، اجرایش را تماشا کن و ببین در هر قدم <b>چرا</b> آن تصمیم را گرفت. بدون حتی یک خط کدنویسی.</p>
+    <span class="stage-badge" id="stageBadge">مرحله ۱: ساخت استراتژی</span>
     <button class="btn small" id="adminOpen" type="button" style="margin-inline-start:auto">پنل ادمین</button>
   </header>
 
@@ -273,8 +281,19 @@
       </div>
     </section>
 
+    <!-- ===== کارت قفل مرحلهٔ ۲ ===== -->
+    <section class="panel stage-lock-card" id="stageLockCard" aria-label="مرحله ۲: آزمایش و مقایسه">
+      <h2>مرحله ۲: آزمایش و مقایسه</h2>
+      <p class="sub">برای آزمایش استراتژی‌ات و مقایسه با ربات، رمز مرحله بعد را که آموزگار اعلام می‌کند وارد کن.</p>
+      <div class="row">
+        <input type="text" id="stageCodeInput" placeholder="رمز مرحله بعد" aria-label="رمز مرحله بعد" inputmode="numeric" autocomplete="off" style="flex:1; min-width:140px" />
+        <button class="btn primary" id="stageUnlockBtn" type="button">باز کردن مرحله بعد</button>
+      </div>
+      <p class="stage-err" id="stageCodeErr" role="alert"></p>
+    </section>
+
     <!-- ===== Board ===== -->
-    <section class="panel board-col" aria-label="صفحه بازی">
+    <section class="panel board-col" id="boardPanel" aria-label="صفحه بازی">
       <div class="hud">
         <div class="stat"><div class="v" id="hudScore">۰</div><div class="k">امتیاز نجات</div></div>
         <div class="stat"><div class="v" id="hudRescued">۰ از ۶</div><div class="k">مصدوم تحویل‌شده</div></div>
@@ -332,7 +351,7 @@
     </section>
 
     <!-- ===== Decision Inspector ===== -->
-    <section class="panel" aria-label="بازرس تصمیم">
+    <section class="panel" id="inspectorPanel" aria-label="بازرس تصمیم">
       <h2>بازرس تصمیم</h2>
       <p class="sub">در هر قدم ببین ربات چه می‌بیند، کدام قانون‌ها برقرارند و چرا این اقدام انتخاب شد.</p>
       <ul class="obs-list" id="obsList">
@@ -346,7 +365,7 @@
   </div>
 
   <!-- ===== Compare with Q-Learning ===== -->
-  <section class="panel compare" aria-label="مقایسه با عامل یادگیرنده">
+  <section class="panel compare" id="comparePanel" aria-label="مقایسه با عامل یادگیرنده">
     <h2>آزمایش بزرگ: استراتژی تو در برابر ربات یادگیرنده</h2>
     <p class="sub">ربات یادگیرنده هیچ قانونی از تو ندارد؛ با روش <b>یادگیری تقویتی</b> و آزمون‌وخطا روی صدها نقشه یاد می‌گیرد چه کار کند. هر دو را روی <b id="evalMapsLbl">۳۰ نقشهٔ یکسان</b> آزمایش می‌کنیم تا مقایسه عادلانه باشد.</p>
     <div class="compare-grid">
@@ -356,7 +375,6 @@
       </div>
       <div class="agent-card">
         <h3>عامل یادگیرنده</h3>
-        <p>حالت بازی را به چند ویژگی ریز تبدیل می‌کند: باتری در ۵ سطح (۰ تا ۲۰، ۲۰ تا ۴۰، ۴۰ تا ۶۰، ۶۰ تا ۸۰، ۸۰ تا ۱۰۰)، فاصلهٔ نزدیک‌ترین و بحرانی‌ترین مصدوم و فاصلهٔ شارژر هرکدام در ۳ سطح (۰ تا ۲، ۳ تا ۵، ۶ خانه یا بیشتر)، زمان باقی‌مانده در ۳ سطح و وضعیت ظرفیت حمل. برای هر حالت، ارزش هر ۶ اقدام (از جمله «نجات از مسیر امن») را در یک جدول یادگیری نگه می‌دارد. هیچ آستانه و عددی از قبل به او داده نمی‌شود؛ خودش در طول آموزش یاد می‌گیرد مثلاً زیر چه باتری‌ای شارژ کند یا تا چه فاصله‌ای دنبال مصدوم بحرانی برود.</p>
         <div class="prog"><i id="trainProg"></i></div>
         <p class="note" id="trainInfo">هنوز آموزشی انجام نشده است.</p>
         <svg id="trainChart" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -427,6 +445,7 @@
         <div class="row" style="margin-top:12px">
           <button class="btn primary" id="adminApply" type="button">اعمال و ذخیره</button>
           <button class="btn" id="adminDefaults" type="button">بازنشانی تنظیمات</button>
+          <button class="btn" id="adminRelockBtn" type="button">بازگشت به مرحله ۱ (قفل کردن دوباره)</button>
           <button class="btn" id="adminClose" type="button">بستن پنل</button>
         </div>
       </div>
@@ -1784,7 +1803,48 @@ $("adminApply").addEventListener("click", ()=> applyAdminParams(false));
 $("adminDefaults").addEventListener("click", ()=> applyAdminParams(true));
 $("adminOverlay").addEventListener("click", e=>{ if(e.target === $("adminOverlay")) closeAdmin(); });
 
+/* ================= مرحله‌بندی ================= */
+const STAGE_CODE = "1384";
+const STAGE_KEY = "rescueMission.stage.v1";
+let currentStage = 1;
+function normalizeStageCode(v){
+  return String(v == null ? "" : v)
+    .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .trim();
+}
+function applyStage(stage){
+  currentStage = stage === 2 ? 2 : 1;
+  const locked = currentStage === 1;
+  ["boardPanel", "inspectorPanel", "comparePanel"].forEach(id=>{
+    const el = $(id); if(el) el.classList.toggle("stage-hidden", locked);
+  });
+  const card = $("stageLockCard"); if(card) card.classList.toggle("stage-hidden", !locked);
+  const badge = $("stageBadge"); if(badge) badge.textContent = locked ? "مرحله ۱: ساخت استراتژی" : "مرحله ۲: آزمایش و مقایسه";
+  try { localStorage.setItem(STAGE_KEY, String(currentStage)); } catch(e){}
+  if(locked){ const sc = $("scenarioOverlay"); if(sc) sc.classList.remove("on"); }
+}
+function loadStage(){
+  let s = 1;
+  try { s = Number(localStorage.getItem(STAGE_KEY)) === 2 ? 2 : 1; } catch(e){}
+  applyStage(s);
+}
+function tryUnlockStage(){
+  const inp = $("stageCodeInput"), err = $("stageCodeErr");
+  if(normalizeStageCode(inp.value) === STAGE_CODE){
+    err.textContent = "";
+    inp.value = "";
+    applyStage(2);
+  } else {
+    err.textContent = "رمز درست نیست — از آموزگار بپرس.";
+  }
+}
+$("stageUnlockBtn").addEventListener("click", tryUnlockStage);
+$("stageCodeInput").addEventListener("keydown", e=>{ if(e.key === "Enter") tryUnlockStage(); });
+$("adminRelockBtn").addEventListener("click", ()=>{ applyStage(1); closeAdmin(); });
+
 /* ================= شروع ================= */
+loadStage();
 renderRules();
 renderSaved();
 applyPresetVisibility();
