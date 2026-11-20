@@ -162,6 +162,23 @@
   .local-grid p{ margin:0 0 10px; font-size:14px; }
   .code-box{ direction:ltr; text-align:left; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; line-height:1.9; overflow-x:auto; white-space:nowrap; margin:0 0 10px; }
   footer{ margin-top:26px; color:var(--muted); font-size:13px; text-align:center; }
+  /* ---------- Admin ---------- */
+  .admin-overlay{ position:fixed; inset:0; background:rgba(10,20,18,.55); display:none; align-items:flex-start; justify-content:center; padding:22px 14px; z-index:50; overflow:auto; }
+  .admin-overlay.on{ display:flex; }
+  .admin-box{ background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:16px; padding:20px; width:min(700px,100%); box-shadow:var(--shadow); }
+  .admin-box h2{ margin:0 0 4px; font-size:20px; font-weight:900; }
+  .admin-box .sub{ color:var(--muted); font-size:13.5px; margin:0 0 12px; }
+  .admin-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; }
+  @media (max-width:560px){ .admin-grid{ grid-template-columns:1fr; } }
+  .admin-field label{ display:block; font-size:13px; font-weight:700; margin-bottom:3px; }
+  .admin-field .hint{ font-size:11.5px; color:var(--muted); display:block; }
+  .admin-box input[type="number"], .admin-box input[type="password"], .admin-box input[type="text"]{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; }
+  .admin-box input:focus{ outline:2px solid var(--teal); outline-offset:1px; }
+  .admin-sec{ font-size:15px; font-weight:800; margin:18px 0 8px; color:var(--teal-dark); border-top:1px dashed var(--line); padding-top:12px; }
+  .admin-sec:first-of-type{ border-top:none; padding-top:0; margin-top:4px; }
+  .admin-err{ color:var(--red); font-size:13.5px; font-weight:700; min-height:1.2em; margin:6px 0 0; }
+  .admin-ok{ color:var(--green); font-size:13.5px; font-weight:700; margin:8px 0 0; }
+  .admin-ok:empty, .admin-err:empty{ min-height:0; }
 </style>
 </head>
 <body>
@@ -169,6 +186,7 @@
   <header class="top">
     <h1>مأموریت نجات <span class="en">RESCUE MISSION</span></h1>
     <p>مغز ربات نجات را خودت طراحی کن: قانون بنویس، اولویت بده، اجرایش را تماشا کن و ببین در هر قدم <b>چرا</b> آن تصمیم را گرفت. بدون حتی یک خط کدنویسی.</p>
+    <button class="btn small" id="adminOpen" type="button" style="margin-inline-start:auto">پنل ادمین</button>
   </header>
 
   <div class="howto">
@@ -287,7 +305,7 @@
   <!-- ===== Compare with Q-Learning ===== -->
   <section class="panel compare" aria-label="مقایسه با عامل یادگیرنده">
     <h2>آزمایش بزرگ: استراتژی تو در برابر ربات یادگیرنده</h2>
-    <p class="sub">ربات یادگیرنده هیچ قانونی از تو ندارد؛ با روش <b>Q-Learning</b> و آزمون‌وخطا روی صدها نقشه یاد می‌گیرد چه کار کند. هر دو را روی <b>۳۰ نقشهٔ یکسان</b> آزمایش می‌کنیم تا مقایسه عادلانه باشد.</p>
+    <p class="sub">ربات یادگیرنده هیچ قانونی از تو ندارد؛ با روش <b>Q-Learning</b> و آزمون‌وخطا روی صدها نقشه یاد می‌گیرد چه کار کند. هر دو را روی <b id="evalMapsLbl">۳۰ نقشهٔ یکسان</b> آزمایش می‌کنیم تا مقایسه عادلانه باشد.</p>
     <div class="compare-grid">
       <div class="agent-card">
         <h3>استراتژی تو (Human Strategy)</h3>
@@ -347,6 +365,35 @@
     </div>
   </section>
 
+  <!-- ===== Admin ===== -->
+  <div class="admin-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="پنل ادمین">
+    <div class="admin-box">
+      <div id="adminLogin">
+        <h2>ورود ادمین</h2>
+        <p class="sub">برای تغییر پارامترهای بازی، نام کاربری و رمز عبور ادمین را وارد کن.</p>
+        <div class="admin-field" style="margin-bottom:10px"><label for="adminUser">نام کاربری</label><input type="text" id="adminUser" autocomplete="username" /></div>
+        <div class="admin-field"><label for="adminPass">رمز عبور</label><input type="password" id="adminPass" autocomplete="current-password" /></div>
+        <p class="admin-err" id="adminErr"></p>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="adminLoginBtn" type="button">ورود به پنل</button>
+          <button class="btn" id="adminCancel" type="button">بستن</button>
+        </div>
+      </div>
+      <div id="adminPanel" hidden>
+        <h2>پنل ادمین — تنظیم پارامترها</h2>
+        <p class="sub">این مقادیر روی محیط بازی، امتیازها و آموزش عامل یادگیرنده اثر می‌گذارند و در همین مرورگر ذخیره می‌شوند. با زدن «اعمال و ذخیره»، مأموریت جاری با پارامترهای تازه از اول شروع می‌شود. تغییر پارامترهای یادگیری، از آموزش بعدی اعمال می‌شود.</p>
+        <div id="adminFields"></div>
+        <p class="admin-err" id="adminPanelErr"></p>
+        <p class="admin-ok" id="adminOk"></p>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="adminApply" type="button">اعمال و ذخیره</button>
+          <button class="btn" id="adminDefaults" type="button">بازنشانی به پیش‌فرض‌ها</button>
+          <button class="btn" id="adminClose" type="button">بستن پنل</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer>مأموریت نجات — یک بازی آموزشی برای فهم تصمیم‌گیری ربات‌ها: قانون، اولویت و یادگیری از تجربه.</footer>
 </div>
 
@@ -390,7 +437,58 @@ const ACTIONS = [
 ];
 const condLabel = c => CONDITIONS.find(x=>x.id===c.id).label.replace("حد انتخابی", faNum(c.threshold ?? 30) + "٪");
 const actLabel  = id => ACTIONS.find(x=>x.id===id).label;
-const POINTS = { normal:10, urgent:20, critical:30 };
+
+/* ================= پارامترهای قابل تنظیم در پنل ادمین ================= */
+const PARAM_FIELDS = [
+  { sec:"محیط بازی" },
+  { key:"capacity",    label:"ظرفیت حمل ربات (نفر)",            min:1,   max:4,    step:1 },
+  { key:"maxTime",     label:"سقف قدم‌های مأموریت",             min:40,  max:400,  step:10 },
+  { key:"startBattery",label:"باتری شروع (٪)",                  min:20,  max:100,  step:5 },
+  { key:"obstacles",   label:"تعداد موانع",                     min:0,   max:40,   step:1 },
+  { key:"dangerCells", label:"تعداد خانه‌های خطرناک",           min:0,   max:30,   step:1 },
+  { key:"dangerCost",  label:"هزینهٔ باتری هر قدم روی زمین خطرناک", min:1, max:10,  step:1, hint:"قدم عادی همیشه ۱ واحد باتری مصرف می‌کند." },
+  { key:"chargeRate",  label:"شارژ در هر قدم روی شارژر (٪)",    min:1,   max:50,   step:1 },
+  { key:"smartChargeThreshold", label:"آستانهٔ شارژ هوشمند (٪)", min:10, max:100,  step:5, hint:"اقدام «شارژ هوشمند» زیر این باتری به شارژر می‌رود." },
+  { key:"returnMargin",label:"حاشیهٔ اطمینان باتری برای بازگشت به پایگاه", min:0, max:20, step:1 },
+  { sec:"مصدومان و امتیازها" },
+  { key:"survivorsCritical", label:"تعداد مصدوم بحرانی",        min:0,   max:6,    step:1 },
+  { key:"survivorsUrgent",   label:"تعداد مصدوم فوری",          min:0,   max:6,    step:1 },
+  { key:"survivorsNormal",   label:"تعداد مصدوم عادی",          min:0,   max:6,    step:1 },
+  { key:"pointsCritical",    label:"امتیاز مصدوم بحرانی",       min:0,   max:100,  step:5 },
+  { key:"pointsUrgent",      label:"امتیاز مصدوم فوری",         min:0,   max:100,  step:5 },
+  { key:"pointsNormal",      label:"امتیاز مصدوم عادی",         min:0,   max:100,  step:5 },
+  { sec:"یادگیری تقویتی (Q-Learning)" },
+  { key:"trainEpisodes",    label:"مأموریت تمرینی آموزش عامل",  min:50,  max:2000, step:50 },
+  { key:"finetuneEpisodes", label:"مأموریت تمرینی یادگیری دوباره", min:50, max:1000, step:50 },
+  { key:"evalMaps",         label:"تعداد نقشه‌های مقایسه",      min:5,   max:100,  step:5 },
+  { key:"alpha",   label:"نرخ یادگیری (α)",   min:0.01, max:1,    step:0.01 },
+  { key:"gamma",   label:"ضریب تنزیل (γ)",    min:0,    max:0.99, step:0.01 },
+  { key:"epsilon", label:"نرخ کاوش شروع (ε)", min:0,    max:1,    step:0.01 }
+];
+const PARAM_DEFAULTS = { capacity:2, maxTime:160, startBattery:100, obstacles:13, dangerCells:8, dangerCost:3,
+  chargeRate:10, smartChargeThreshold:80, returnMargin:4,
+  survivorsCritical:2, survivorsUrgent:2, survivorsNormal:2, pointsNormal:10, pointsUrgent:20, pointsCritical:30,
+  trainEpisodes:400, finetuneEpisodes:200, evalMaps:30, alpha:0.15, gamma:0.95, epsilon:0.35 };
+const PARAM_KEY = "rescueMission.adminParams.v1";
+function clampParam(f, v){
+  v = Number(v); if(!isFinite(v)) v = PARAM_DEFAULTS[f.key];
+  v = Math.min(f.max, Math.max(f.min, v));
+  const dec = (String(f.step).split(".")[1] || "").length;
+  return Number(v.toFixed(dec));
+}
+function sanitizeParams(p){
+  const out = { ...PARAM_DEFAULTS };
+  if(p && typeof p === "object") for(const f of PARAM_FIELDS){ if(f.key && p[f.key] !== undefined) out[f.key] = clampParam(f, p[f.key]); }
+  if(out.survivorsCritical + out.survivorsUrgent + out.survivorsNormal < 1) out.survivorsNormal = 1;
+  return out;
+}
+let PARAMS = (function(){
+  try { return sanitizeParams(JSON.parse(localStorage.getItem(PARAM_KEY) || "null")); }
+  catch(e){ return { ...PARAM_DEFAULTS }; }
+})();
+function persistParams(){ try { localStorage.setItem(PARAM_KEY, JSON.stringify(PARAMS)); } catch(e){} }
+let POINTS = { normal: PARAMS.pointsNormal, urgent: PARAMS.pointsUrgent, critical: PARAMS.pointsCritical };
+function syncPoints(){ POINTS = { normal: PARAMS.pointsNormal, urgent: PARAMS.pointsUrgent, critical: PARAMS.pointsCritical }; }
 const LEVEL_NAME = { normal:"عادی", urgent:"فوری", critical:"بحرانی" };
 
 /* ================= ساخت نقشه ================= */
@@ -401,12 +499,15 @@ function genMap(seed, capacity){
     const used = new Set([key(base.x, base.y)]);
     const pick = () => { let x,y,k; do { x = Math.floor(rnd()*12); y = Math.floor(rnd()*12); k = key(x,y); } while(used.has(k)); used.add(k); return {x,y}; };
     const chargers = [pick(), pick()];
-    const obstacles = new Set(); for(let i=0;i<13;i++){ const p = pick(); obstacles.add(key(p.x,p.y)); }
-    const danger = new Set();    for(let i=0;i<8;i++){ const p = pick(); danger.add(key(p.x,p.y)); }
-    const levels = ["critical","critical","urgent","urgent","normal","normal"];
+    const obstacles = new Set(); for(let i=0;i<PARAMS.obstacles;i++){ const p = pick(); obstacles.add(key(p.x,p.y)); }
+    const danger = new Set();    for(let i=0;i<PARAMS.dangerCells;i++){ const p = pick(); danger.add(key(p.x,p.y)); }
+    const levels = [].concat(
+      Array(PARAMS.survivorsCritical).fill("critical"),
+      Array(PARAMS.survivorsUrgent).fill("urgent"),
+      Array(PARAMS.survivorsNormal).fill("normal"));
     const survivors = levels.map(lv => { const p = pick(); return { x:p.x, y:p.y, level:lv, picked:false, delivered:false }; });
     const st = { seed, capacity, base, chargers, obstacles, danger, survivors,
-      robot:{...base}, battery:100, time:0, maxTime:160, carrying:[], score:0, deliveredCount:0, over:false, result:"" };
+      robot:{...base}, battery:PARAMS.startBattery, time:0, maxTime:PARAMS.maxTime, carrying:[], score:0, deliveredCount:0, over:false, result:"" };
     // بررسی دسترس‌پذیری همهٔ هدف‌ها از پایگاه
     const seen = new Set([key(base.x, base.y)]); const q = [base];
     while(q.length){ const c = q.shift(); for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=c.x+dx, ny=c.y+dy, k=key(nx,ny); if(inB(nx,ny) && !obstacles.has(k) && !seen.has(k)){ seen.add(k); q.push({x:nx,y:ny}); } } }
@@ -417,7 +518,7 @@ function genMap(seed, capacity){
 
 /* دایکسترا از موقعیت ربات: هزینهٔ باتری (خطرناک=۳، یا بیشتر برای مسیر امن) + تعداد قدم */
 function dijkstra(st, dangerCost){
-  const dc = dangerCost === undefined ? 3 : dangerCost;
+  const dc = dangerCost === undefined ? PARAMS.dangerCost : dangerCost;
   const dist = new Map(), cost = new Map(), prev = new Map();
   const start = key(st.robot.x, st.robot.y);
   dist.set(start,0); cost.set(start,0);
@@ -479,7 +580,7 @@ function evalCondition(rule, obs){
     case "baseFar": return obs.baseD > 5;
     case "chargerNear": return obs.chargerD <= 3;
     case "timeLow": return obs.timeLeft <= 30;
-    case "lowForReturn": return obs.battery < obs.baseCost + 4;
+    case "lowForReturn": return obs.battery < obs.baseCost + PARAMS.returnMargin;
   }
   return false;
 }
@@ -491,7 +592,7 @@ function stepEnv(st, actionId){
   const obs = observe(st);
   const origAction = actionId;
   // اقدام‌های ترکیبی تازه به رفتار پایه ترجمه می‌شوند
-  if(actionId==="chargeSmart") actionId = obs.battery < 80 ? "toCharger" : "rescueNearest";
+  if(actionId==="chargeSmart") actionId = obs.battery < PARAMS.smartChargeThreshold ? "toCharger" : "rescueNearest";
   else if(actionId==="deliverPartial") actionId = st.carrying.length ? "toBase" : "search";
   const onCharger = st.chargers.some(c=>c.x===st.robot.x && c.y===st.robot.y);
   const atBase = st.robot.x===st.base.x && st.robot.y===st.base.y;
@@ -509,8 +610,8 @@ function stepEnv(st, actionId){
   else if(actionId==="toBase") target = st.base;
   else if(actionId==="toCharger"){
     if(onCharger && st.battery < 100){
-      st.battery = Math.min(100, st.battery + 10); st.time++;
-      info.event = "در حال شارژ… +۱۰٪ باتری"; info.reward += 0.1;
+      st.battery = Math.min(100, st.battery + PARAMS.chargeRate); st.time++;
+      info.event = "در حال شارژ… +" + faNum(PARAMS.chargeRate) + "٪ باتری"; info.reward += 0.1;
       finishStep(st, info); return info;
     }
     let best=null, bd=Infinity;
@@ -527,7 +628,7 @@ function stepEnv(st, actionId){
     else {
       const dijUse = origAction==="rescueSafe" ? dijkstra(st, 15) : obs.dij;
       const ns = nextStepToward(st, dijUse, target);
-      if(ns){ st.robot = ns; st.battery -= st.danger.has(key(ns.x,ns.y)) ? 3 : 1; st.time++; info.event = "حرکت به سمت هدف"; }
+      if(ns){ st.robot = ns; st.battery -= st.danger.has(key(ns.x,ns.y)) ? PARAMS.dangerCost : 1; st.time++; info.event = "حرکت به سمت هدف"; }
       else { st.time++; info.event = "مسیر بسته است؛ منتظر ماند"; }
     }
   } else { st.time++; info.event = "اقدامی ممکن نبود"; }
@@ -568,7 +669,7 @@ let rules = [
   { id:"criticalNear", action:"rescueUrgent" }
 ];
 let mapSeed = 7;
-let game = genMap(mapSeed, 2);
+let game = genMap(mapSeed, PARAMS.capacity);
 let playing = false, timer = null;
 let history = [];       // اسنپ‌شات‌های بازپخش
 let lastDecision = null;
@@ -706,7 +807,7 @@ $("speedSel").addEventListener("change", ()=>{ if(playing){ stopPlay(); startPla
 function resetMission(newSeed){
   stopPlay(); exitReplay();
   if(newSeed !== undefined) mapSeed = newSeed;
-  game = genMap(mapSeed, 2);
+  game = genMap(mapSeed, PARAMS.capacity);
   history = []; lastDecision = null;
   $("decisionLog").innerHTML = "";
   pushHistory(null);
@@ -839,11 +940,11 @@ $("downloadBtn").addEventListener("click", ()=>{
 /* ================= Q-Learning ================= */
 const QACT = ["rescueNearest","rescueUrgent","toBase","toCharger","search"];
 let Q = {}, qTrained = false, qEpisodes = 0, trainCurve = [];
-const EPS0 = 0.35, ALPHA = 0.15, GAMMA = 0.95;
+/* نرخ کاوش (ε)، نرخ یادگیری (α) و ضریب تنزیل (γ) از PARAMS خوانده می‌شوند تا پنل ادمین رویشان اثر بگذارد */
 function qStateKey(obs, st){
   const b = obs.battery < 30 ? 0 : obs.battery < 60 ? 1 : 2;
   const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
-  return [b, carry, obs.crit && obs.critD<=3 ? 1:0, obs.nearest && obs.nearestD<=3 ? 1:0, obs.baseD<=3 ? 1:0, obs.battery < obs.baseCost+4 ? 1:0].join("|");
+  return [b, carry, obs.crit && obs.critD<=3 ? 1:0, obs.nearest && obs.nearestD<=3 ? 1:0, obs.baseD<=3 ? 1:0, obs.battery < obs.baseCost+PARAMS.returnMargin ? 1:0].join("|");
 }
 function qRow(key){ if(!Q[key]) Q[key] = [0,0,0,0,0]; return Q[key]; }
 function qChoose(st, epsilon){
@@ -864,7 +965,7 @@ function runEpisode(agentFn, seed, capacity, train, epsilon){
       const obsAfter = observe(st); const rowAfter = qRow(qStateKey(obsAfter, st));
       const maxNext = st.over ? 0 : Math.max.apply(null, rowAfter);
       const row = qRow(keyBefore);
-      row[ai] += ALPHA * (info.reward + GAMMA * maxNext - row[ai]);
+      row[ai] += PARAMS.alpha * (info.reward + PARAMS.gamma * maxNext - row[ai]);
     } else {
       const info = stepEnv(st, agentFn(st));
       totalReward += info.reward;
@@ -878,12 +979,12 @@ function trainQL(episodes, capacity, done){
   function chunk(){
     const t0 = Date.now();
     while(ep < episodes && Date.now() - t0 < 40){
-      const eps = Math.max(0.03, EPS0 * Math.pow(0.995, qEpisodes));
+      const eps = Math.max(0.03, PARAMS.epsilon * Math.pow(0.995, qEpisodes));
       const r = runEpisode(null, 31000 + qEpisodes*3 + Math.floor(Math.random()*2), capacity, true, eps);
       qEpisodes++; ep++; windowReward += r.reward;
       if(qEpisodes % 25 === 0){ trainCurve.push(windowReward/25); windowReward = 0; if(trainCurve.length>40) trainCurve.shift(); drawCurve(); }
       $("trainProg").style.width = Math.round(ep/episodes*100) + "%";
-      $("trainInfo").textContent = "در حال آموزش… مأموریت تمرینی " + faNum(qEpisodes) + " — نرخ کاوش (ε): " + faNum(Math.round(Math.max(0.03, EPS0*Math.pow(0.995,qEpisodes))*100)) + "٪";
+      $("trainInfo").textContent = "در حال آموزش… مأموریت تمرینی " + faNum(qEpisodes) + " — نرخ کاوش (ε): " + faNum(Math.round(Math.max(0.03, PARAMS.epsilon*Math.pow(0.995,qEpisodes))*100)) + "٪";
     }
     if(ep < episodes) setTimeout(chunk, 0);
     else {
@@ -902,16 +1003,16 @@ function drawCurve(){
   svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="#0b7285" stroke-width="2.5"/>' +
     '<text x="4" y="12" font-size="9" fill="currentColor" opacity=".6">میانگین پاداش در هر ۲۵ مأموریت تمرینی</text>';
 }
-$("trainBtn").addEventListener("click", ()=> trainQL(400, Number($("capSel").value) || 2));
+$("trainBtn").addEventListener("click", ()=> trainQL(PARAMS.trainEpisodes, Number($("capSel").value) || PARAMS.capacity));
 $("finetuneBtn").addEventListener("click", ()=>{
   const cap = Number($("capSel").value);
   $("evalNote").textContent = "عامل یادگیرنده دارد در محیط جدید (ظرفیت " + faNum(cap) + " نفر) دوباره تمرین می‌کند…";
-  trainQL(200, cap, ()=> evaluate(true));
+  trainQL(PARAMS.finetuneEpisodes, cap, ()=> evaluate(true));
 });
 
 /* ================= ارزیابی و مقایسه ================= */
 function evalAgent(agentFn, capacity){
-  let agg = { score:0, rescued:0, win:0, battery:0, time:0 }; const N = 30;
+  let agg = { score:0, rescued:0, win:0, battery:0, time:0 }; const N = PARAMS.evalMaps;
   for(let i=0;i<N;i++){ const r = runEpisode(agentFn, 5000 + i, capacity, false, 0); agg.score += r.score; agg.rescued += r.rescued; agg.win += r.win?1:0; agg.battery += r.battery; agg.time += r.time; }
   return { score: agg.score/N, rescued: agg.rescued/N, winRate: agg.win/N*100, battery: agg.battery/N, time: agg.time/N };
 }
@@ -926,14 +1027,14 @@ function evaluate(afterFinetune){
     { name: afterFinetune ? "عامل یادگیرنده (بعد از یادگیری دوباره)" : "عامل یادگیرنده (Q-Learning)", color: "var(--teal)", r: rl }
   ];
   const maxScore = Math.max.apply(null, rows.map(x=>x.r.score)) || 1;
-  let html = '<table class="results"><tr><th>عامل</th><th>میانگین امتیاز</th><th>مصدوم نجات‌یافته (از ۶)</th><th>تکمیل مأموریت</th><th>باتری باقی‌مانده</th><th>زمان مصرفی</th></tr>';
+  let html = '<table class="results"><tr><th>عامل</th><th>میانگین امتیاز</th><th>مصدوم نجات‌یافته (از ' + faNum(PARAMS.survivorsCritical + PARAMS.survivorsUrgent + PARAMS.survivorsNormal) + ')</th><th>تکمیل مأموریت</th><th>باتری باقی‌مانده</th><th>زمان مصرفی</th></tr>';
   for(const row of rows){
     html += "<tr><td>" + row.name + "</td><td>" + faNum(row.r.score.toFixed(1)) + "</td><td>" + faNum(row.r.rescued.toFixed(1)) + "</td><td>" + faPct(row.r.winRate) + "</td><td>" + faPct(row.r.battery) + "</td><td>" + faNum(Math.round(row.r.time)) + "</td></tr>";
   }
   html += "</table>";
   html += '<div class="bars">' + rows.map(row =>
     '<div class="bar-row"><span>' + row.name + '</span><div class="bar-track"><div class="bar-fill" style="width:' + Math.round(row.r.score/maxScore*100) + '%; background:' + row.color + '"></div></div><b>' + faNum(row.r.score.toFixed(1)) + "</b></div>").join("") + "</div>";
-  html += '<p class="note" style="margin-top:10px">محیط آزمایش: ظرفیت حمل ' + faNum(cap) + ' نفر — هر دو عامل دقیقاً روی همان ۳۰ نقشه (بذرهای یکسان) اجرا شدند.</p>';
+  html += '<p class="note" style="margin-top:10px">محیط آزمایش: ظرفیت حمل ' + faNum(cap) + ' نفر — هر دو عامل دقیقاً روی همان ' + faNum(PARAMS.evalMaps) + ' نقشه (بذرهای یکسان) اجرا شدند.</p>';
   $("evalOut").innerHTML = html;
   $("evalNote").textContent = cap === 1
     ? "ظرفیت حمل حالا ۱ نفر است: ربات باید مدام به پایگاه برگردد. اگر امتیازها افت کرده‌اند، تعجب نکن — استراتژی‌ای که برای ظرفیت ۲ عالی بود، شاید اینجا دیگر بهترین نباشد. دکمهٔ «یادگیری دوباره» را بزن و تفاوت را ببین."
@@ -941,9 +1042,83 @@ function evaluate(afterFinetune){
 }
 $("evalBtn").addEventListener("click", ()=> evaluate(false));
 
+/* ================= پنل ادمین ================= */
+let adminAuthed = false; // وضعیت ورود فقط در حافظهٔ همین نشست می‌ماند
+function refreshParamLabels(){
+  $("trainBtn").textContent = "آموزش عامل یادگیرنده (" + faNum(PARAMS.trainEpisodes) + " مأموریت تمرینی)";
+  $("evalBtn").textContent = "اجرای مقایسه روی " + faNum(PARAMS.evalMaps) + " نقشهٔ یکسان";
+  $("evalMapsLbl").textContent = faNum(PARAMS.evalMaps) + " نقشهٔ یکسان";
+}
+function buildAdminFields(){
+  const box = $("adminFields"); box.innerHTML = "";
+  let grid = null;
+  for(const f of PARAM_FIELDS){
+    if(f.sec){
+      const h = document.createElement("div"); h.className = "admin-sec"; h.textContent = f.sec; box.appendChild(h);
+      grid = document.createElement("div"); grid.className = "admin-grid"; box.appendChild(grid);
+      continue;
+    }
+    const wrap = document.createElement("div"); wrap.className = "admin-field";
+    wrap.innerHTML = '<label for="pf-' + f.key + '"></label>' +
+      '<input type="number" id="pf-' + f.key + '" min="' + f.min + '" max="' + f.max + '" step="' + f.step + '" value="' + PARAMS[f.key] + '" />' +
+      (f.hint ? '<span class="hint"></span>' : "");
+    wrap.querySelector("label").textContent = f.label;
+    if(f.hint) wrap.querySelector(".hint").textContent = f.hint;
+    grid.appendChild(wrap);
+  }
+}
+function openAdmin(){
+  $("adminOverlay").classList.add("on");
+  $("adminLogin").hidden = adminAuthed;
+  $("adminPanel").hidden = !adminAuthed;
+  $("adminErr").textContent = ""; $("adminOk").textContent = ""; $("adminPanelErr").textContent = "";
+  if(adminAuthed) buildAdminFields(); else $("adminUser").focus();
+}
+function closeAdmin(){ $("adminOverlay").classList.remove("on"); }
+function tryAdminLogin(){
+  const u = $("adminUser").value.trim(), p = $("adminPass").value;
+  if((u === "admin" && (p === "123" || p === "admin123")) || (u === "" && p === "admin123")){
+    adminAuthed = true; $("adminPass").value = "";
+    $("adminLogin").hidden = true; $("adminPanel").hidden = false;
+    $("adminErr").textContent = "";
+    buildAdminFields();
+  } else {
+    $("adminErr").textContent = "نام کاربری یا رمز عبور اشتباه است.";
+  }
+}
+function applyAdminParams(fromDefaults){
+  const next = { ...PARAMS };
+  for(const f of PARAM_FIELDS){
+    if(!f.key) continue;
+    const el = $("pf-" + f.key); if(!el) continue;
+    next[f.key] = clampParam(f, fromDefaults ? PARAM_DEFAULTS[f.key] : el.value);
+    el.value = next[f.key];
+  }
+  if(next.survivorsCritical + next.survivorsUrgent + next.survivorsNormal < 1){
+    $("adminPanelErr").textContent = "حداقل یک مصدوم باید در نقشه باشد؛ تعداد مصدوم عادی را بیشتر کن.";
+    $("adminOk").textContent = "";
+    return;
+  }
+  $("adminPanelErr").textContent = "";
+  PARAMS = sanitizeParams(next);
+  persistParams(); syncPoints(); refreshParamLabels();
+  resetMission(); // مأموریت با پارامترهای تازه از اول ساخته می‌شود
+  $("adminOk").textContent = "پارامترها اعمال و ذخیره شدند و مأموریت از اول شروع شد.";
+}
+$("adminOpen").addEventListener("click", openAdmin);
+$("adminCancel").addEventListener("click", closeAdmin);
+$("adminClose").addEventListener("click", closeAdmin);
+$("adminLoginBtn").addEventListener("click", tryAdminLogin);
+$("adminPass").addEventListener("keydown", e=>{ if(e.key === "Enter") tryAdminLogin(); });
+$("adminUser").addEventListener("keydown", e=>{ if(e.key === "Enter") tryAdminLogin(); });
+$("adminApply").addEventListener("click", ()=> applyAdminParams(false));
+$("adminDefaults").addEventListener("click", ()=> applyAdminParams(true));
+$("adminOverlay").addEventListener("click", e=>{ if(e.target === $("adminOverlay")) closeAdmin(); });
+
 /* ================= شروع ================= */
 renderRules();
 renderSaved();
+refreshParamLabels();
 resetMission(7);
 validate(false);
 </script>
