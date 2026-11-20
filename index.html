@@ -209,8 +209,9 @@
         <button class="preset" id="presetD" type="button"><b>استراتژی D — محافظه‌کار باتری</b><small>شارژ زودهنگام و محتاطانه؛ هیچ‌وقت با باتری کم ریسک نمی‌کند</small></button>
         <button class="preset" id="presetE" type="button"><b>استراتژی E — متعادل هوشمند</b><small>تحویل سریع وقتی پایگاه نزدیک است، شارژ هوشمند، وگرنه نجات</small></button>
         <button class="preset" id="presetF" type="button"><b>استراتژی F — مسیر امن</b><small>دوری از زمین خطرناک با مسیر امن، حتی اگر راه طولانی‌تر شود</small></button>
+        <button class="preset" id="presetG" type="button" style="grid-column:1 / -1; border-color:var(--orange); background:color-mix(in srgb, var(--orange) 10%, var(--panel2))"><b>🏆 استراتژی قهرمان — رقیب RL</b><small>۵ قانون بدون آستانهٔ باتری: پر→پایگاه، بحرانی نزدیک→بحرانی‌ترین، بحرانی در نقشه→مسیر امن، فوری نزدیک→بحرانی‌ترین، نزدیک‌ترین≤۳→نزدیک‌ترین</small></button>
       </div>
-      <p class="note" style="margin:-4px 0 12px">شش استراتژی آماده فقط نقطهٔ شروع‌اند: شرط‌ها و اقدام‌های تازه‌ای هم اضافه شده (مثل «مصدوم بحرانی هنوز در نقشه هست»، «باتری بالاست»، «شارژ هوشمند» و «نجات از مسیر امن») تا ترکیب‌های خیلی بیشتری بسازی و نتیجه‌شان را با هم مقایسه کنی.</p>
+      <p class="note" style="margin:-4px 0 12px">هفت استراتژی آماده فقط نقطهٔ شروع‌اند: شرط‌ها و اقدام‌های تازه‌ای هم اضافه شده (مثل «مصدوم بحرانی هنوز در نقشه هست»، «باتری بالاست»، «شارژ هوشمند» و «نجات از مسیر امن») تا ترکیب‌های خیلی بیشتری بسازی و نتیجه‌شان را با هم مقایسه کنی. «استراتژی قهرمان» برای رقابت مستقیم با عامل Q-Learning طراحی شده و هیچ قانون شارژ یا آستانهٔ باتری ندارد.</p>
 
       <div id="rulesList"></div>
 
@@ -906,6 +907,7 @@ $("presetC").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBa
 $("presetD").addEventListener("click", ()=>{ rules = [ { id:"batteryBelow", threshold:50, action:"toCharger" }, { id:"lowForReturn", action:"toCharger" }, { id:"full", action:"toBase" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"survivorNear", action:"rescueNearest" } ]; renderRules(); validate(false); });
 $("presetE").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"carryingAny", action:"deliverPartial" }, { id:"batteryAbove", threshold:80, action:"rescueNearest" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"batteryBelow", threshold:30, action:"chargeSmart" } ]; renderRules(); validate(false); });
 $("presetF").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"criticalExists", action:"rescueSafe" }, { id:"survivorNear", action:"rescueSafe" } ]; renderRules(); validate(false); });
+$("presetG").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"criticalExists", action:"rescueSafe" }, { id:"urgentNear", action:"rescueUrgent" }, { id:"survivorNear", action:"rescueNearest" } ]; renderRules(); validate(false); });
 $("saveStrat").addEventListener("click", ()=>{
   const name = $("stratName").value.trim() || ("استراتژی " + faNum(savedStrategies.length+1));
   savedStrategies.push({ name, rules: JSON.parse(JSON.stringify(rules)) });
