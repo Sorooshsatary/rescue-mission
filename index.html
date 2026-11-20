@@ -181,6 +181,13 @@
   .shock-banner p{ margin:6px 0; font-size:14.5px; }
   .shock-banner p b{ color:var(--red); }
   .shock-banner.restored p b{ color:var(--green); }
+  /* ---------- تنظیم سناریوهای تغییر محیط ---------- */
+  .scenario-box{ width:min(880px,100%); }
+  .scn-card{ background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:12px; }
+  .scn-card .scn-name{ font-weight:800; }
+  .scn-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px 12px; margin-top:10px; }
+  .scn-grid .admin-field label{ display:block; font-size:12.5px; font-weight:700; margin-bottom:3px; }
+  .scn-empty{ color:var(--muted); font-size:13.5px; margin:0 0 12px; }
   .local-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
   @media (max-width:760px){ .local-grid{ grid-template-columns:1fr; } }
   .local-grid h3{ margin:0 0 6px; font-size:15.5px; font-weight:800; }
@@ -364,6 +371,7 @@
         <span>دنیا همیشه ثابت نمی‌ماند! با این دکمه محیط ناگهان عوض می‌شود؛ قانون‌هایت دست‌نخورده می‌مانند تا خودت ببینی هنوز جواب می‌دهند یا نه.</span>
       </div>
       <button class="btn shock-btn" id="shockBtn" type="button">⚡ تغییر ناگهانی محیط</button>
+      <button class="btn" id="scenarioOpenBtn" type="button">تنظیم سناریوها</button>
       <button class="btn" id="restoreEnvBtn" type="button" disabled>↩ بازگشت به محیط عادی</button>
     </div>
     <div class="shock-banner" id="shockBanner" hidden role="alert"></div>
@@ -410,12 +418,12 @@
     </div>
   </section>
 
-  <!-- ===== Admin ===== -->
+  <!-- ===== پنل ادمین (ورود با رمز، پارامترهای محلی) ===== -->
   <div class="admin-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="پنل ادمین">
     <div class="admin-box">
       <div id="adminLogin">
-        <h2>ورود به پنل ادمین</h2>
-        <p class="sub">برای تغییر پارامترهای بازی، نام کاربری و رمز عبور را وارد کن.</p>
+        <h2>پنل ادمین</h2>
+        <p class="sub">برای تغییر پارامترهای بازی باید وارد شوی. ورود فقط برای همین جلسه معتبر است و با بستن صفحه از بین می‌رود.</p>
         <div class="admin-login-fields">
           <div class="admin-field">
             <label for="adminUser">نام کاربری</label>
@@ -434,7 +442,7 @@
       </div>
       <div id="adminPanel" hidden>
         <h2>پنل ادمین — پارامترها</h2>
-        <p class="sub">این مقادیر روی محیط بازی، امتیازها و آموزش عامل یادگیرنده اثر می‌گذارند و در همین مرورگر ذخیره می‌شوند. با زدن «اعمال و ذخیره»، مأموریت جاری با پارامترهای تازه از اول شروع می‌شود. تغییر پارامترهای یادگیری، از آموزش بعدی اعمال می‌شود.</p>
+        <p class="sub">این‌ها تنظیمات محلی‌اند و فقط در همین مرورگر ذخیره می‌شوند. این مقادیر روی محیط بازی، امتیازها و آموزش عامل یادگیرنده اثر می‌گذارند. با زدن «اعمال و ذخیره»، مأموریت جاری با پارامترهای تازه از اول شروع می‌شود. تغییر پارامترهای یادگیری، از آموزش بعدی اعمال می‌شود.</p>
         <div id="adminFields"></div>
         <p class="admin-err" id="adminPanelErr"></p>
         <p class="admin-ok" id="adminOk"></p>
@@ -443,6 +451,25 @@
           <button class="btn" id="adminDefaults" type="button">بازنشانی به پیش‌فرض‌ها</button>
           <button class="btn" id="adminClose" type="button">بستن پنل</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== تنظیم سناریوهای تغییر محیط ===== -->
+  <div class="admin-overlay" id="scenarioOverlay" role="dialog" aria-modal="true" aria-label="تنظیم سناریوهای تغییر محیط">
+    <div class="admin-box scenario-box">
+      <h2>تنظیم سناریوهای تغییر محیط</h2>
+      <p class="sub">اینجا سناریوهای تغییر محیط را می‌بینی و ویرایش می‌کنی. هر سناریو می‌گوید وقتی اعمال شود، کدام مقدارهای محیط به چه عددی عوض شوند. تنظیم‌هایت در همین مرورگر ذخیره می‌شوند و بعد از بستن و باز کردن صفحه هم می‌مانند. دکمهٔ «تغییر ناگهانی محیط» یکی از همهٔ این سناریوها (اصلی و ذخیره‌شده) را تصادفی انتخاب و اعمال می‌کند.</p>
+      <div class="admin-sec">تنظیم اصلی — سناریوهای پیش‌فرض</div>
+      <div id="scenarioMainList"></div>
+      <div class="admin-sec">تنظیم‌های ذخیره‌شدهٔ من</div>
+      <div id="scenarioCustomList"></div>
+      <div class="admin-sec">ساختن سناریوی تازه</div>
+      <div id="scenarioNewForm"></div>
+      <p class="admin-ok" id="scenarioMsg" role="status"></p>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="scenarioReset" type="button">بازنشانی تنظیمات</button>
+        <button class="btn primary" id="scenarioClose" type="button">بستن</button>
       </div>
     </div>
   </div>
@@ -533,7 +560,7 @@ function condLabel(c){
 }
 const actLabel  = id => ACTIONS.find(x=>x.id===id).label;
 
-/* ================= پارامترهای قابل تنظیم در پنل ادمین ================= */
+/* ================= پارامترهای قابل تنظیم در تنظیمات بازی ================= */
 const PARAM_FIELDS = [
   { sec:"محیط بازی" },
   { key:"capacity",    label:"ظرفیت حمل ربات (نفر)",            min:1,   max:4,    step:1 },
@@ -602,7 +629,8 @@ function genMap(seed, capacity){
       Array(PARAMS.survivorsNormal).fill("normal"));
     const survivors = levels.map(lv => { const p = pick(); return { x:p.x, y:p.y, level:lv, picked:false, delivered:false }; });
     const st = { seed, capacity, base, chargers, obstacles, danger, survivors,
-      robot:{...base}, battery:PARAMS.startBattery, time:0, maxTime:PARAMS.maxTime, carrying:[], score:0, deliveredCount:0, over:false, result:"" };
+      robot:{...base}, battery:PARAMS.startBattery, time:0, maxTime:PARAMS.maxTime, carrying:[], score:0, deliveredCount:0, over:false, result:"",
+      visited:new Set([key(base.x, base.y)]) };
     // بررسی دسترس‌پذیری همهٔ هدف‌ها از پایگاه
     const seen = new Set([key(base.x, base.y)]); const q = [base];
     while(q.length){ const c = q.shift(); for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=c.x+dx, ny=c.y+dy, k=key(nx,ny); if(inB(nx,ny) && !obstacles.has(k) && !seen.has(k)){ seen.add(k); q.push({x:nx,y:ny}); } } }
@@ -686,16 +714,45 @@ function stepEnv(st, actionId){
   const info = { event:"", reward:-0.05, picked:null, deliveredNow:0 };
   if(st.over) return info;
   const obs = observe(st);
+  // خانه‌هایی که ربات دیده/سر زده است؛ برای اقدام «جست‌وجو» (کاوش) لازم است
+  if(!st.visited) st.visited = new Set();
+  st.visited.add(key(st.robot.x, st.robot.y));
   const origAction = actionId;
   // اقدام‌های ترکیبی تازه به رفتار پایه ترجمه می‌شوند
   if(actionId==="chargeSmart") actionId = obs.battery < PARAMS.smartChargeThreshold ? "toCharger" : "rescueNearest";
   else if(actionId==="deliverPartial") actionId = st.carrying.length ? "toBase" : "search";
   const onCharger = st.chargers.some(c=>c.x===st.robot.x && c.y===st.robot.y);
   const atBase = st.robot.x===st.base.x && st.robot.y===st.base.y;
-  let target = null, wantPickup = null;
+  let target = null, wantPickup = null, ineffective = false;
 
   if(actionId==="rescueNearest" || actionId==="rescueUrgent" || actionId==="search" || origAction==="rescueSafe"){
-    if(st.carrying.length >= st.capacity){ target = st.base; info.event = "ظرفیت پر است؛ به سوی پایگاه"; }
+    if(st.carrying.length >= st.capacity){
+      // ظرفیت پر است: هیچ تغییر مسیر مخفی‌ای به پایگاه در کار نیست؛ اقدام نجات/جست‌وجو واقعاً بی‌اثر می‌ماند
+      // تا عامل یادگیرنده خودش یاد بگیرد در این وضعیت «بازگشت به پایگاه» را انتخاب کند.
+      ineffective = true;
+    }
+    else if(origAction==="rescueSafe"){
+      // نجات از مسیر امن: هدف هم با همان دایکسترای امن (هزینهٔ خطر ۱۵) انتخاب می‌شود، نه با هزینهٔ عادی
+      const dijSafe = dijkstra(st, 15);
+      let s = null, sc = Infinity;
+      for(const sv of obs.alive){ const c = dijSafe.cost.get(key(sv.x, sv.y)); if(c !== undefined && c < sc){ sc = c; s = sv; } }
+      if(s){ if(s.x===st.robot.x && s.y===st.robot.y) wantPickup = s; else target = s; }
+      else target = st.base;
+    }
+    else if(actionId==="search"){
+      // جست‌وجو یعنی کاوش: ربات به سوی نزدیک‌ترین خانه‌ای می‌رود که هنوز ندیده/سر نزده است؛
+      // فقط وقتی همهٔ خانه‌های قابل‌دسترس دیده شده‌اند، سراغ نزدیک‌ترین مصدوم می‌رود.
+      let tgt = null, td = Infinity;
+      for(let y=0;y<12;y++) for(let x=0;x<12;x++){
+        const k = key(x,y);
+        if(st.obstacles.has(k) || st.visited.has(k)) continue;
+        const d = obs.dij.dist.get(k);
+        if(d !== undefined && d < td){ td = d; tgt = { x, y }; }
+      }
+      if(tgt) target = tgt;
+      else if(obs.nearest){ const s = obs.nearest; if(s.x===st.robot.x && s.y===st.robot.y) wantPickup = s; else target = s; }
+      else target = st.base;
+    }
     else if(obs.alive.length){
       let s;
       if(actionId==="rescueUrgent"){ s = obs.alive.slice().sort((a,b)=> (POINTS[b.level]-POINTS[a.level]) || ((obs.dij.dist.get(key(a.x,a.y))??99) - (obs.dij.dist.get(key(b.x,b.y))??99)))[0]; }
@@ -719,6 +776,12 @@ function stepEnv(st, actionId){
     st.time++; wantPickup.picked = true; st.carrying.push(wantPickup.level);
     info.picked = wantPickup; info.event = "مصدوم " + LEVEL_NAME[wantPickup.level] + " سوار شد";
     info.reward += 3 + (wantPickup.level==="critical" ? 2 : wantPickup.level==="urgent" ? 1 : 0);
+  } else if(ineffective){
+    // ظرفیت پر است و اقدام نجات/جست‌وجو انتخاب شده: ربات سر جایش می‌ماند و جریمهٔ کوچکی می‌گیرد
+    st.time++;
+    info.event = actionId==="search" ? "ظرفیت پر است — اقدام جست‌وجو بی‌اثر ماند" : "ظرفیت پر است — اقدام نجات بی‌اثر ماند";
+    info.reward -= 1;
+    info.ineffective = true;
   } else if(target){
     if(target.x===st.robot.x && target.y===st.robot.y){ st.time++; info.event = "در مقصد، منتظر ماند"; }
     else {
@@ -867,6 +930,7 @@ function renderInspector(dec){
   chosen.textContent = dec.fallback
     ? "هیچ قانونی برقرار نبود ← رفتار پیش‌فرض: " + actLabel(dec.actionId)
     : "قانون " + faNum(dec.ruleIndex+1) + " فعال شد ← اقدام: " + actLabel(dec.actionId);
+  if(dec.ineffective && dec.event) chosen.textContent += " — " + dec.event;
   document.querySelectorAll(".rule-card").forEach((c,i)=> c.classList.toggle("active", i === dec.ruleIndex));
   const log = $("decisionLog"); const li = document.createElement("li");
   li.innerHTML = "<b>قدم " + faNum(game.time) + ":</b> " + (dec.fallback ? "پیش‌فرض" : "قانون " + faNum(dec.ruleIndex+1)) + " ← " + actLabel(dec.actionId) + (dec.event ? " — " + dec.event : "");
@@ -887,6 +951,7 @@ function doStep(){
   const dec = humanDecision(rules, game);
   const info = stepEnv(game, dec.actionId);
   dec.event = info.event;
+  dec.ineffective = !!info.ineffective;
   lastDecision = dec;
   pushHistory(dec);
   renderAll(); renderInspector(dec); renderMissionMsg();
@@ -1060,7 +1125,7 @@ function checkpointQ(capacity){
   if(s > bestValScore){ bestValScore = s; bestQ = JSON.parse(JSON.stringify(Q)); bestVisits = { ...QVisits }; bestValAt = qEpisodes; bestValCapacity = capacity; }
   return s;
 }
-/* نرخ کاوش (ε)، نرخ یادگیری (α) و ضریب تنزیل (γ) از PARAMS خوانده می‌شوند تا پنل ادمین رویشان اثر بگذارد */
+/* نرخ کاوش (ε)، نرخ یادگیری (α) و ضریب تنزیل (γ) از PARAMS خوانده می‌شوند تا تنظیمات بازی رویشان اثر بگذارد */
 /* وضعیت Q عمداً ریز ساخته می‌شود تا عامل آستانه‌ها را خودش در آموزش یاد بگیرد،
    نه اینکه عددها از قبل ثابت باشند:
    - باتری در ۵ سطح: ۰–۲۰، ۲۰–۴۰، ۴۰–۶۰، ۶۰–۸۰، ۸۰–۱۰۰
@@ -1272,10 +1337,7 @@ function showShockBanner(scenario, diffs){
     '<p><b>یادآوری دربارهٔ عامل یادگیرنده:</b> عامل یادگیرنده هم روی محیط قبلی آموزش دیده است؛ تا دکمهٔ «یادگیری دوباره در محیط جدید» را نزنی، امتیازش در این محیط تازه احتمالاً افت می‌کند — درست مثل استراتژی ثابت تو.</p>';
   banner.hidden = false;
 }
-function applyShock(){
-  const candidates = SHOCK_SCENARIOS.filter(sc => Object.keys(sc.changes).some(k => PARAMS[k] !== sc.changes[k]));
-  const pool = candidates.length ? candidates : SHOCK_SCENARIOS;
-  const scenario = pool[Math.floor(Math.random() * pool.length)];
+function applyScenario(scenario){
   const before = { ...PARAMS };
   const next = { ...PARAMS };
   for(const k in scenario.changes) next[k] = scenario.changes[k];
@@ -1291,6 +1353,12 @@ function applyShock(){
   showShockBanner(scenario, diffs);
   $("evalNote").textContent = "محیط عوض شده است! اول مأموریت را با همین قانون‌های فعلی اجرا کن و افت نتیجه را ببین؛ بعد قانون‌ها را اصلاح کن و مقایسه را دوباره اجرا کن. برای عامل یادگیرنده هم «یادگیری دوباره در محیط جدید» را بزن.";
   try { $("shockBanner").scrollIntoView({ behavior:"smooth", block:"center" }); } catch(e){}
+}
+function applyShock(){
+  const list = allScenarios();
+  const candidates = list.filter(sc => Object.keys(sc.changes).some(k => PARAMS[k] !== sc.changes[k]));
+  const pool = candidates.length ? candidates : list;
+  applyScenario(pool[Math.floor(Math.random() * pool.length)]);
 }
 function restoreNormalEnv(){
   PARAMS = sanitizeParams({ ...PARAM_DEFAULTS });
@@ -1313,19 +1381,146 @@ $("restoreEnvBtn").addEventListener("click", restoreNormalEnv);
 // اگر پارامترهای ذخیره‌شده با پیش‌فرض فرق دارند (مثلاً از شوک قبلی مانده‌اند)، دکمهٔ بازگشت فعال باشد
 (function(){ const keys = Object.keys(SHOCK_LABELS); if(keys.some(k => PARAMS[k] !== PARAM_DEFAULTS[k])){ envShocked = true; $("restoreEnvBtn").disabled = false; } })();
 
-/* ================= پنل ادمین (ورود با رمز، فقط برای همین جلسه) ================= */
-const ADMIN_SESSION_KEY = "rescueMission.adminSession.v1";
-let adminAuthed = false;
-try { adminAuthed = sessionStorage.getItem(ADMIN_SESSION_KEY) === "1"; } catch(e){ adminAuthed = false; }
+/* ================= تنظیم سناریوهای تغییر محیط =================
+   ویرایش‌های سناریوهای اصلی و سناریوهای سفارشی کاربر در localStorage می‌مانند.
+   هر سناریو یک «تغییرات» جزئی دارد؛ در پنل، برای نمایش و ویرایش، مقدارهای خالی با پیش‌فرض محیط پر می‌شوند. */
+const SHOCK_KEYS = Object.keys(SHOCK_LABELS);
+const SHOCK_CFG_KEY = "rescueMission.shockScenarios.v1";
+function sanitizeScenario(sc){
+  if(!sc || typeof sc !== "object" || !sc.changes || typeof sc.changes !== "object") return null;
+  const changes = {};
+  for(const k of SHOCK_KEYS){
+    if(sc.changes[k] !== undefined){
+      const f = PARAM_FIELDS.find(x=>x.key===k);
+      if(f) changes[k] = clampParam(f, sc.changes[k]);
+    }
+  }
+  if(!Object.keys(changes).length) return null;
+  const title = typeof sc.title === "string" && sc.title.trim() ? sc.title.trim().slice(0, 60) : "سناریوی بدون نام";
+  return { title, changes };
+}
+let shockConfig = (function(){
+  const empty = { edited:{}, customs:[] };
+  try {
+    const raw = JSON.parse(localStorage.getItem(SHOCK_CFG_KEY) || "null");
+    if(!raw || typeof raw !== "object") return empty;
+    const cfg = { edited:{}, customs:[] };
+    if(raw.edited && typeof raw.edited === "object") for(const i in raw.edited){ const s = sanitizeScenario(raw.edited[i]); if(s) cfg.edited[i] = s; }
+    if(Array.isArray(raw.customs)) cfg.customs = raw.customs.map(sanitizeScenario).filter(Boolean);
+    return cfg;
+  } catch(e){ return empty; }
+})();
+function persistShockConfig(){ try { localStorage.setItem(SHOCK_CFG_KEY, JSON.stringify(shockConfig)); } catch(e){} }
+function mainScenarios(){ return SHOCK_SCENARIOS.map((sc,i)=> shockConfig.edited[i] || sc); }
+function allScenarios(){ return mainScenarios().concat(shockConfig.customs); }
+function expandChanges(sc){ const out = {}; for(const k of SHOCK_KEYS) out[k] = sc.changes[k] !== undefined ? sc.changes[k] : PARAM_DEFAULTS[k]; return out; }
+function sameScenario(a, b){
+  if(a.title !== b.title) return false;
+  const ea = expandChanges(a), eb = expandChanges(b);
+  return SHOCK_KEYS.every(k => ea[k] === eb[k]);
+}
+function scenarioMsg(txt){ $("scenarioMsg").textContent = txt; }
+
+function buildScenarioCard(sc, handlers){
+  const card = document.createElement("div"); card.className = "scn-card";
+  const nameInput = document.createElement("input");
+  nameInput.type = "text"; nameInput.className = "scn-name"; nameInput.value = sc.title;
+  nameInput.placeholder = "نام سناریو"; nameInput.setAttribute("aria-label", "نام سناریو");
+  card.appendChild(nameInput);
+  const grid = document.createElement("div"); grid.className = "scn-grid";
+  const vals = expandChanges(sc); const inputs = {};
+  for(const k of SHOCK_KEYS){
+    const f = PARAM_FIELDS.find(x=>x.key===k);
+    const wrap = document.createElement("div"); wrap.className = "admin-field";
+    const lab = document.createElement("label"); lab.textContent = SHOCK_LABELS[k];
+    const inp = document.createElement("input");
+    inp.type = "number"; inp.min = f.min; inp.max = f.max; inp.step = f.step; inp.value = vals[k];
+    inp.setAttribute("aria-label", SHOCK_LABELS[k]);
+    wrap.appendChild(lab); wrap.appendChild(inp); grid.appendChild(wrap);
+    inputs[k] = inp;
+  }
+  card.appendChild(grid);
+  function readValues(){
+    const changes = {};
+    for(const k of SHOCK_KEYS){ const f = PARAM_FIELDS.find(x=>x.key===k); changes[k] = clampParam(f, inputs[k].value); inputs[k].value = changes[k]; }
+    return { title: nameInput.value.trim(), changes };
+  }
+  const row = document.createElement("div"); row.className = "row"; row.style.marginTop = "10px";
+  if(handlers.onApply){
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn small primary"; b.textContent = "اعمال";
+    b.addEventListener("click", ()=> handlers.onApply(readValues()));
+    row.appendChild(b);
+  }
+  if(handlers.onSave){
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn small"; b.textContent = "ذخیره";
+    b.addEventListener("click", ()=> handlers.onSave(readValues()));
+    row.appendChild(b);
+  }
+  if(handlers.onDelete){
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn small"; b.textContent = "حذف";
+    b.addEventListener("click", ()=> handlers.onDelete());
+    row.appendChild(b);
+  }
+  card.appendChild(row);
+  return card;
+}
+function renderScenarioPanel(){
+  const main = $("scenarioMainList"); main.innerHTML = "";
+  mainScenarios().forEach((sc, i)=>{
+    main.appendChild(buildScenarioCard(sc, {
+      onApply: scn => { closeScenarioPanel(); applyScenario(scn); },
+      onSave: scn => {
+        if(!scn.title) scn.title = SHOCK_SCENARIOS[i].title;
+        if(sameScenario(scn, SHOCK_SCENARIOS[i])) delete shockConfig.edited[i];
+        else shockConfig.edited[i] = scn;
+        persistShockConfig(); renderScenarioPanel();
+        scenarioMsg("سناریوی اصلی «" + scn.title + "» ذخیره شد.");
+      }
+    }));
+  });
+  const custom = $("scenarioCustomList"); custom.innerHTML = "";
+  if(!shockConfig.customs.length){
+    const p = document.createElement("p"); p.className = "scn-empty";
+    p.textContent = "هنوز تنظیم ذخیره‌شده‌ای نداری؛ از بخش «ساختن سناریوی تازه» اولین تنظیمت را بساز.";
+    custom.appendChild(p);
+  }
+  shockConfig.customs.forEach((sc, i)=>{
+    custom.appendChild(buildScenarioCard(sc, {
+      onApply: scn => { if(!scn.title) scn.title = sc.title; shockConfig.customs[i] = scn; persistShockConfig(); closeScenarioPanel(); applyScenario(scn); },
+      onSave: scn => { if(!scn.title) scn.title = sc.title; shockConfig.customs[i] = scn; persistShockConfig(); renderScenarioPanel(); scenarioMsg("تنظیم «" + scn.title + "» ذخیره شد."); },
+      onDelete: () => { const nm = shockConfig.customs[i].title; shockConfig.customs.splice(i,1); persistShockConfig(); renderScenarioPanel(); scenarioMsg("تنظیم «" + nm + "» حذف شد."); }
+    }));
+  });
+  const form = $("scenarioNewForm"); form.innerHTML = "";
+  form.appendChild(buildScenarioCard({ title:"", changes:{ capacity:PARAM_DEFAULTS.capacity, maxTime:PARAM_DEFAULTS.maxTime, dangerCost:PARAM_DEFAULTS.dangerCost, dangerCells:PARAM_DEFAULTS.dangerCells, obstacles:PARAM_DEFAULTS.obstacles, chargeRate:PARAM_DEFAULTS.chargeRate, startBattery:PARAM_DEFAULTS.startBattery } }, {
+    onSave: scn => {
+      if(!scn.title) scn.title = "تنظیم " + faNum(shockConfig.customs.length + 1);
+      shockConfig.customs.push(scn); persistShockConfig(); renderScenarioPanel();
+      scenarioMsg("تنظیم تازهٔ «" + scn.title + "» ذخیره شد.");
+    }
+  }));
+}
+function openScenarioPanel(){ scenarioMsg(""); renderScenarioPanel(); $("scenarioOverlay").classList.add("on"); }
+function closeScenarioPanel(){ $("scenarioOverlay").classList.remove("on"); }
+$("scenarioOpenBtn").addEventListener("click", openScenarioPanel);
+$("scenarioClose").addEventListener("click", closeScenarioPanel);
+$("scenarioOverlay").addEventListener("click", e=>{ if(e.target === $("scenarioOverlay")) closeScenarioPanel(); });
+$("scenarioReset").addEventListener("click", ()=>{
+  shockConfig = { edited:{}, customs:[] };
+  persistShockConfig(); renderScenarioPanel();
+  scenarioMsg("همهٔ تنظیم‌ها بازنشانی شد: ویرایش‌های سناریوهای اصلی و همهٔ تنظیم‌های ذخیره‌شده پاک شدند و همان ۶ سناریوی پیش‌فرض برگشتند.");
+});
+
+/* ================= پنل ادمین (ورود با رمز؛ ورود فقط برای همین جلسه در sessionStorage) ================= */
+const ADMIN_SESSION_KEY = "rescueMission.adminAuthed.v1";
+function isAdminAuthed(){ try { return sessionStorage.getItem(ADMIN_SESSION_KEY) === "1"; } catch(e){ return false; } }
+function setAdminAuthed(){ try { sessionStorage.setItem(ADMIN_SESSION_KEY, "1"); } catch(e){} }
 function showAdminLogin(){
-  $("adminLogin").hidden = false;
-  $("adminPanel").hidden = true;
+  $("adminLogin").hidden = false; $("adminPanel").hidden = true;
   $("adminLoginErr").textContent = "";
-  $("adminPass").value = "";
 }
 function showAdminPanel(){
-  $("adminLogin").hidden = true;
-  $("adminPanel").hidden = false;
+  $("adminLogin").hidden = true; $("adminPanel").hidden = false;
   $("adminOk").textContent = ""; $("adminPanelErr").textContent = "";
   buildAdminFields();
 }
@@ -1333,15 +1528,12 @@ function attemptAdminLogin(){
   const u = $("adminUser").value.trim();
   const p = $("adminPass").value;
   if(u === "admin" && p === "123"){
-    adminAuthed = true;
-    try { sessionStorage.setItem(ADMIN_SESSION_KEY, "1"); } catch(e){}
+    setAdminAuthed();
+    $("adminPass").value = "";
     $("adminLoginErr").textContent = "";
     showAdminPanel();
   } else {
-    adminAuthed = false;
     $("adminLoginErr").textContent = "نام کاربری یا رمز عبور اشتباه است.";
-    $("adminPass").value = "";
-    $("adminPass").focus();
   }
 }
 function refreshParamLabels(){
@@ -1369,11 +1561,11 @@ function buildAdminFields(){
 }
 function openAdmin(){
   $("adminOverlay").classList.add("on");
-  if(adminAuthed) showAdminPanel(); else showAdminLogin();
+  if(isAdminAuthed()) showAdminPanel(); else showAdminLogin();
 }
 function closeAdmin(){ $("adminOverlay").classList.remove("on"); }
 function applyAdminParams(fromDefaults){
-  if(!adminAuthed){ showAdminLogin(); return; }
+  if(!isAdminAuthed()){ showAdminLogin(); return; }
   const next = { ...PARAMS };
   for(const f of PARAM_FIELDS){
     if(!f.key) continue;
@@ -1395,8 +1587,8 @@ function applyAdminParams(fromDefaults){
 $("adminOpen").addEventListener("click", openAdmin);
 $("adminLoginBtn").addEventListener("click", attemptAdminLogin);
 $("adminLoginClose").addEventListener("click", closeAdmin);
-$("adminUser").addEventListener("keydown", e=>{ if(e.key === "Enter"){ e.preventDefault(); attemptAdminLogin(); } });
-$("adminPass").addEventListener("keydown", e=>{ if(e.key === "Enter"){ e.preventDefault(); attemptAdminLogin(); } });
+$("adminUser").addEventListener("keydown", e=>{ if(e.key === "Enter") attemptAdminLogin(); });
+$("adminPass").addEventListener("keydown", e=>{ if(e.key === "Enter") attemptAdminLogin(); });
 $("adminClose").addEventListener("click", closeAdmin);
 $("adminApply").addEventListener("click", ()=> applyAdminParams(false));
 $("adminDefaults").addEventListener("click", ()=> applyAdminParams(true));
