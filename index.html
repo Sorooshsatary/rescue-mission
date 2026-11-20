@@ -166,7 +166,6 @@
   .model-row{ background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 12px; font-size:14px; }
   .model-row .if-part{ font-weight:700; }
   .model-row .then-part{ color:var(--teal-dark); font-weight:800; }
-  .model-row .meta{ display:block; color:var(--muted); font-size:12.5px; margin-top:2px; }
   /* ---------- Sudden environment change ---------- */
   .shock-zone{ margin-top:16px; border:2px dashed color-mix(in srgb, var(--red) 55%, var(--line)); background:color-mix(in srgb, var(--red) 6%, var(--panel2)); border-radius:12px; padding:14px 16px; display:flex; flex-wrap:wrap; gap:12px 16px; align-items:center; }
   .shock-zone-text{ flex:1 1 260px; }
@@ -199,7 +198,8 @@
   @media (max-width:560px){ .admin-grid{ grid-template-columns:1fr; } }
   .admin-field label{ display:block; font-size:13px; font-weight:700; margin-bottom:3px; }
   .admin-field .hint{ font-size:11.5px; color:var(--muted); display:block; }
-  .admin-box input[type="number"], .admin-box input[type="password"], .admin-box input[type="text"]{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; }
+  .admin-box input[type="number"], .admin-box input[type="text"], .admin-box input[type="password"]{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; }
+  .admin-login-fields{ display:grid; gap:10px; margin-bottom:4px; }
   .admin-box input:focus{ outline:2px solid var(--teal); outline-offset:1px; }
   .admin-sec{ font-size:15px; font-weight:800; margin:18px 0 8px; color:var(--teal-dark); border-top:1px dashed var(--line); padding-top:12px; }
   .admin-sec:first-of-type{ border-top:none; padding-top:0; margin-top:4px; }
@@ -354,7 +354,7 @@
 
     <div class="model-zone" id="modelZone">
       <h3>استراتژی مدل — چیزی که عامل یاد گرفته است</h3>
-      <p>اینجا می‌توانی مغز عامل یادگیرنده را بخوانی: بعد از آموزش، پرتکرارترین وضعیت‌هایی که عامل در تمرین دیده، به زبان ساده و به شکل «اگر … آنگاه …» نوشته می‌شود؛ همراه با اینکه هر وضعیت چند بار دیده شده و بهترین اقدامش در جدول یادگیری چقدر ارزش دارد. این بخش بعد از هر آموزش و یادگیریِ دوباره، خودکار به‌روز می‌شود.</p>
+      <p>بعد از آموزش، اینجا می‌بینی عامل چی یاد گرفته — مثل قانون‌های خودت.</p>
       <div id="modelStrategy"></div>
     </div>
 
@@ -414,18 +414,26 @@
   <div class="admin-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="پنل ادمین">
     <div class="admin-box">
       <div id="adminLogin">
-        <h2>ورود ادمین</h2>
-        <p class="sub">برای تغییر پارامترهای بازی، نام کاربری و رمز عبور ادمین را وارد کن.</p>
-        <div class="admin-field" style="margin-bottom:10px"><label for="adminUser">نام کاربری</label><input type="text" id="adminUser" autocomplete="username" /></div>
-        <div class="admin-field"><label for="adminPass">رمز عبور</label><input type="password" id="adminPass" autocomplete="current-password" /></div>
-        <p class="admin-err" id="adminErr"></p>
-        <div class="row" style="margin-top:10px">
-          <button class="btn primary" id="adminLoginBtn" type="button">ورود به پنل</button>
-          <button class="btn" id="adminCancel" type="button">بستن</button>
+        <h2>ورود به پنل ادمین</h2>
+        <p class="sub">برای تغییر پارامترهای بازی، نام کاربری و رمز عبور را وارد کن.</p>
+        <div class="admin-login-fields">
+          <div class="admin-field">
+            <label for="adminUser">نام کاربری</label>
+            <input type="text" id="adminUser" autocomplete="username" />
+          </div>
+          <div class="admin-field">
+            <label for="adminPass">رمز عبور</label>
+            <input type="password" id="adminPass" autocomplete="current-password" />
+          </div>
+        </div>
+        <p class="admin-err" id="adminLoginErr"></p>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="adminLoginBtn" type="button">ورود</button>
+          <button class="btn" id="adminLoginClose" type="button">بستن</button>
         </div>
       </div>
       <div id="adminPanel" hidden>
-        <h2>پنل ادمین — تنظیم پارامترها</h2>
+        <h2>پنل ادمین — پارامترها</h2>
         <p class="sub">این مقادیر روی محیط بازی، امتیازها و آموزش عامل یادگیرنده اثر می‌گذارند و در همین مرورگر ذخیره می‌شوند. با زدن «اعمال و ذخیره»، مأموریت جاری با پارامترهای تازه از اول شروع می‌شود. تغییر پارامترهای یادگیری، از آموزش بعدی اعمال می‌شود.</p>
         <div id="adminFields"></div>
         <p class="admin-err" id="adminPanelErr"></p>
@@ -1191,19 +1199,16 @@ function renderModelStrategy(){
       return { stateKey: k, count: QVisits[k], actionId: QACT[bi], q: row[bi] };
     });
   if(!qTrained || !entries.length){
-    box.innerHTML = '<p class="note">هنوز چیزی برای نمایش نیست — اول عامل یادگیرنده را آموزش بده؛ بعد از آموزش، پرتکرارترین وضعیت‌های دیده‌شده و بهترین اقدام هرکدام همین‌جا به زبان ساده نوشته می‌شود.</p>';
+    box.innerHTML = '<p class="note">هنوز چیزی برای نمایش نیست — اول عامل یادگیرنده را آموزش بده.</p>';
     return;
   }
   entries.sort((a,b)=> (b.count - a.count) || (b.q - a.q));
   const top = entries.slice(0, 12);
-  let html = '<p class="note">عامل در آموزش، ' + faNum(entries.length) + ' وضعیت متفاوت از ' + faNum(1215) + ' وضعیت ممکن را دیده است. این‌ها پرتکرارترین وضعیت‌ها و بهترین اقدام یادگرفته‌شده برای هرکدام‌اند:</p>';
-  html += '<div class="model-list">';
+  let html = '<div class="model-list">';
   for(const e of top){
-    html += '<div class="model-row"><span class="if-part">اگر ' + statePhrase(e.stateKey) + '</span> ← <span class="then-part">آنگاه: ' + actLabel(e.actionId) + '</span>' +
-      '<span class="meta">این وضعیت ' + faNum(e.count) + ' بار در آموزش دیده شده — ارزش بهترین اقدام در جدول یادگیری: ' + faNum(e.q.toFixed(2)) + '</span></div>';
+    html += '<div class="model-row"><span class="if-part">اگر ' + statePhrase(e.stateKey) + '</span> ← <span class="then-part">آنگاه: ' + actLabel(e.actionId) + '</span></div>';
   }
   html += '</div>';
-  if(entries.length > top.length) html += '<p class="note" style="margin-top:8px">… و ' + faNum(entries.length - top.length) + ' وضعیت دیگر که کمتر دیده شده‌اند و اینجا نشان داده نمی‌شوند.</p>';
   box.innerHTML = html;
 }
 $("trainBtn").addEventListener("click", ()=> trainQL(PARAMS.trainEpisodes, Number($("capSel").value) || PARAMS.capacity));
@@ -1308,8 +1313,37 @@ $("restoreEnvBtn").addEventListener("click", restoreNormalEnv);
 // اگر پارامترهای ذخیره‌شده با پیش‌فرض فرق دارند (مثلاً از شوک قبلی مانده‌اند)، دکمهٔ بازگشت فعال باشد
 (function(){ const keys = Object.keys(SHOCK_LABELS); if(keys.some(k => PARAMS[k] !== PARAM_DEFAULTS[k])){ envShocked = true; $("restoreEnvBtn").disabled = false; } })();
 
-/* ================= پنل ادمین ================= */
-let adminAuthed = false; // وضعیت ورود فقط در حافظهٔ همین نشست می‌ماند
+/* ================= پنل ادمین (ورود با رمز، فقط برای همین جلسه) ================= */
+const ADMIN_SESSION_KEY = "rescueMission.adminSession.v1";
+let adminAuthed = false;
+try { adminAuthed = sessionStorage.getItem(ADMIN_SESSION_KEY) === "1"; } catch(e){ adminAuthed = false; }
+function showAdminLogin(){
+  $("adminLogin").hidden = false;
+  $("adminPanel").hidden = true;
+  $("adminLoginErr").textContent = "";
+  $("adminPass").value = "";
+}
+function showAdminPanel(){
+  $("adminLogin").hidden = true;
+  $("adminPanel").hidden = false;
+  $("adminOk").textContent = ""; $("adminPanelErr").textContent = "";
+  buildAdminFields();
+}
+function attemptAdminLogin(){
+  const u = $("adminUser").value.trim();
+  const p = $("adminPass").value;
+  if(u === "admin" && p === "123"){
+    adminAuthed = true;
+    try { sessionStorage.setItem(ADMIN_SESSION_KEY, "1"); } catch(e){}
+    $("adminLoginErr").textContent = "";
+    showAdminPanel();
+  } else {
+    adminAuthed = false;
+    $("adminLoginErr").textContent = "نام کاربری یا رمز عبور اشتباه است.";
+    $("adminPass").value = "";
+    $("adminPass").focus();
+  }
+}
 function refreshParamLabels(){
   $("trainBtn").textContent = "آموزش عامل یادگیرنده (" + faNum(PARAMS.trainEpisodes) + " مأموریت تمرینی)";
   $("evalBtn").textContent = "اجرای مقایسه روی " + faNum(PARAMS.evalMaps) + " نقشهٔ یکسان";
@@ -1335,24 +1369,11 @@ function buildAdminFields(){
 }
 function openAdmin(){
   $("adminOverlay").classList.add("on");
-  $("adminLogin").hidden = adminAuthed;
-  $("adminPanel").hidden = !adminAuthed;
-  $("adminErr").textContent = ""; $("adminOk").textContent = ""; $("adminPanelErr").textContent = "";
-  if(adminAuthed) buildAdminFields(); else $("adminUser").focus();
+  if(adminAuthed) showAdminPanel(); else showAdminLogin();
 }
 function closeAdmin(){ $("adminOverlay").classList.remove("on"); }
-function tryAdminLogin(){
-  const u = $("adminUser").value.trim(), p = $("adminPass").value;
-  if((u === "admin" && (p === "123" || p === "admin123")) || (u === "" && p === "admin123")){
-    adminAuthed = true; $("adminPass").value = "";
-    $("adminLogin").hidden = true; $("adminPanel").hidden = false;
-    $("adminErr").textContent = "";
-    buildAdminFields();
-  } else {
-    $("adminErr").textContent = "نام کاربری یا رمز عبور اشتباه است.";
-  }
-}
 function applyAdminParams(fromDefaults){
+  if(!adminAuthed){ showAdminLogin(); return; }
   const next = { ...PARAMS };
   for(const f of PARAM_FIELDS){
     if(!f.key) continue;
@@ -1372,11 +1393,11 @@ function applyAdminParams(fromDefaults){
   $("adminOk").textContent = "پارامترها اعمال و ذخیره شدند و مأموریت از اول شروع شد.";
 }
 $("adminOpen").addEventListener("click", openAdmin);
-$("adminCancel").addEventListener("click", closeAdmin);
+$("adminLoginBtn").addEventListener("click", attemptAdminLogin);
+$("adminLoginClose").addEventListener("click", closeAdmin);
+$("adminUser").addEventListener("keydown", e=>{ if(e.key === "Enter"){ e.preventDefault(); attemptAdminLogin(); } });
+$("adminPass").addEventListener("keydown", e=>{ if(e.key === "Enter"){ e.preventDefault(); attemptAdminLogin(); } });
 $("adminClose").addEventListener("click", closeAdmin);
-$("adminLoginBtn").addEventListener("click", tryAdminLogin);
-$("adminPass").addEventListener("keydown", e=>{ if(e.key === "Enter") tryAdminLogin(); });
-$("adminUser").addEventListener("keydown", e=>{ if(e.key === "Enter") tryAdminLogin(); });
 $("adminApply").addEventListener("click", ()=> applyAdminParams(false));
 $("adminDefaults").addEventListener("click", ()=> applyAdminParams(true));
 $("adminOverlay").addEventListener("click", e=>{ if(e.target === $("adminOverlay")) closeAdmin(); });
