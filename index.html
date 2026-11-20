@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" href="data:," />
-<title>مأموریت نجات — Rescue Mission</title>
+<title>مأموریت نجات</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
@@ -211,7 +211,7 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>مأموریت نجات <span class="en">RESCUE MISSION</span></h1>
+    <h1>مأموریت نجات</h1>
     <p>مغز ربات نجات را خودت طراحی کن: قانون بنویس، اولویت بده، اجرایش را تماشا کن و ببین در هر قدم <b>چرا</b> آن تصمیم را گرفت. بدون حتی یک خط کدنویسی.</p>
     <button class="btn small" id="adminOpen" type="button" style="margin-inline-start:auto">پنل ادمین</button>
   </header>
@@ -220,7 +220,7 @@
     <span><b>۱.</b> قانون بساز: اگر… آنگاه…</span>
     <span><b>۲.</b> با فلش‌ها اولویت‌ها را جابه‌جا کن</span>
     <span><b>۳.</b> «اجرای آزمایشی» را بزن و تصمیم‌های ربات را در بازرس تصمیم دنبال کن</span>
-    <span><b>۴.</b> استراتژی‌ات را با ربات یادگیرنده (Q-Learning) مقایسه کن</span>
+    <span><b>۴.</b> استراتژی‌ات را با عامل یادگیرنده مقایسه کن</span>
   </div>
 
   <div class="layout">
@@ -230,15 +230,15 @@
       <p class="sub">ربات در هر قدم قانون‌ها را از بالا به پایین می‌خواند و <b>اولین قانون برقرار</b> را اجرا می‌کند. پس ترتیب، یعنی اولویت.</p>
 
       <div class="preset-row">
-        <button class="preset" id="presetA" type="button"><b>استراتژی A — نجات‌محور</b><small>اول نجات بحرانی، بعد شارژ، بعد بازگشت</small></button>
-        <button class="preset" id="presetB" type="button"><b>استراتژی B — ایمنی‌محور</b><small>اول شارژ، بعد بازگشت، بعد نجات بحرانی</small></button>
-        <button class="preset" id="presetC" type="button"><b>استراتژی C — امتیاز و سرعت</b><small>شکار مداوم مصدوم؛ شارژ فقط وقتی باتری واقعاً کم است</small></button>
-        <button class="preset" id="presetD" type="button"><b>استراتژی D — محافظه‌کار باتری</b><small>شارژ زودهنگام و محتاطانه؛ هیچ‌وقت با باتری کم ریسک نمی‌کند</small></button>
-        <button class="preset" id="presetE" type="button"><b>استراتژی E — متعادل هوشمند</b><small>تحویل سریع وقتی پایگاه نزدیک است، شارژ هوشمند، وگرنه نجات</small></button>
-        <button class="preset" id="presetF" type="button"><b>استراتژی F — مسیر امن</b><small>دوری از زمین خطرناک با مسیر امن، حتی اگر راه طولانی‌تر شود</small></button>
-        <button class="preset" id="presetG" type="button" style="grid-column:1 / -1; border-color:var(--orange); background:color-mix(in srgb, var(--orange) 10%, var(--panel2))"><b>🏆 استراتژی قهرمان — رقیب RL</b><small>۵ قانون بدون آستانهٔ باتری: پر→پایگاه، بحرانی نزدیک→بحرانی‌ترین، بحرانی در نقشه→مسیر امن، فوری نزدیک→بحرانی‌ترین، نزدیک‌ترین≤۳→نزدیک‌ترین</small></button>
+        <button class="preset" id="presetA" type="button"><b>استراتژی ۱ — نجات‌محور</b><small>اول نجات بحرانی، بعد شارژ، بعد بازگشت</small></button>
+        <button class="preset" id="presetB" type="button"><b>استراتژی ۲ — ایمنی‌محور</b><small>اول شارژ، بعد بازگشت، بعد نجات بحرانی</small></button>
+        <button class="preset" id="presetC" type="button"><b>استراتژی ۳ — امتیاز و سرعت</b><small>شکار مداوم مصدوم؛ شارژ فقط وقتی باتری واقعاً کم است</small></button>
+        <button class="preset" id="presetD" type="button"><b>استراتژی ۴ — محافظه‌کار باتری</b><small>شارژ زودهنگام و محتاطانه؛ هیچ‌وقت با باتری کم ریسک نمی‌کند</small></button>
+        <button class="preset" id="presetE" type="button"><b>استراتژی ۵ — متعادل هوشمند</b><small>تحویل سریع وقتی پایگاه نزدیک است، شارژ هوشمند، وگرنه نجات</small></button>
+        <button class="preset" id="presetF" type="button"><b>استراتژی ۶ — مسیر امن</b><small>دوری از زمین خطرناک با مسیر امن، حتی اگر راه طولانی‌تر شود</small></button>
+        <button class="preset" id="presetG" type="button" style="grid-column:1 / -1; border-color:var(--orange); background:color-mix(in srgb, var(--orange) 10%, var(--panel2))"><b>🏆 استراتژی قهرمان — رقیب عامل یادگیرنده</b><small>۵ قانون بدون آستانهٔ باتری: پر→پایگاه، بحرانی نزدیک→بحرانی‌ترین، بحرانی در نقشه→مسیر امن، فوری نزدیک→بحرانی‌ترین، نزدیک‌ترین≤۳→نزدیک‌ترین</small></button>
       </div>
-      <p class="note" style="margin:-4px 0 12px">هفت استراتژی آماده فقط نقطهٔ شروع‌اند: شرط‌ها و اقدام‌های تازه‌ای هم اضافه شده (مثل «مصدوم بحرانی هنوز در نقشه هست»، «باتری بالاست»، «شارژ هوشمند» و «نجات از مسیر امن») تا ترکیب‌های خیلی بیشتری بسازی و نتیجه‌شان را با هم مقایسه کنی. «استراتژی قهرمان» برای رقابت مستقیم با عامل Q-Learning طراحی شده و هیچ قانون شارژ یا آستانهٔ باتری ندارد.</p>
+      <p class="note" style="margin:-4px 0 12px">هفت استراتژی آماده فقط نقطهٔ شروع‌اند: شرط‌ها و اقدام‌های تازه‌ای هم اضافه شده (مثل «مصدوم بحرانی هنوز در نقشه هست»، «باتری بالاست»، «شارژ هوشمند» و «نجات از مسیر امن») تا ترکیب‌های خیلی بیشتری بسازی و نتیجه‌شان را با هم مقایسه کنی. «استراتژی قهرمان» برای رقابت مستقیم با عامل یادگیرنده طراحی شده و هیچ قانون شارژ یا آستانهٔ باتری ندارد.</p>
 
       <div id="rulesList"></div>
 
@@ -318,7 +318,7 @@
 
     <!-- ===== Decision Inspector ===== -->
     <section class="panel" aria-label="بازرس تصمیم">
-      <h2>بازرس تصمیم <span style="font-size:12px; color:var(--muted)">Decision Inspector</span></h2>
+      <h2>بازرس تصمیم</h2>
       <p class="sub">در هر قدم ببین ربات چه می‌بیند، کدام قانون‌ها برقرارند و چرا این اقدام انتخاب شد.</p>
       <ul class="obs-list" id="obsList">
         <li><span>وضعیت ربات</span><b>آمادهٔ شروع</b></li>
@@ -333,15 +333,15 @@
   <!-- ===== Compare with Q-Learning ===== -->
   <section class="panel compare" aria-label="مقایسه با عامل یادگیرنده">
     <h2>آزمایش بزرگ: استراتژی تو در برابر ربات یادگیرنده</h2>
-    <p class="sub">ربات یادگیرنده هیچ قانونی از تو ندارد؛ با روش <b>Q-Learning</b> و آزمون‌وخطا روی صدها نقشه یاد می‌گیرد چه کار کند. هر دو را روی <b id="evalMapsLbl">۳۰ نقشهٔ یکسان</b> آزمایش می‌کنیم تا مقایسه عادلانه باشد.</p>
+    <p class="sub">ربات یادگیرنده هیچ قانونی از تو ندارد؛ با روش <b>یادگیری تقویتی</b> و آزمون‌وخطا روی صدها نقشه یاد می‌گیرد چه کار کند. هر دو را روی <b id="evalMapsLbl">۳۰ نقشهٔ یکسان</b> آزمایش می‌کنیم تا مقایسه عادلانه باشد.</p>
     <div class="compare-grid">
       <div class="agent-card">
-        <h3>استراتژی تو (Human Strategy)</h3>
+        <h3>استراتژی تو</h3>
         <p>همان قانون‌هایی که در سازندهٔ استراتژی ساخته‌ای؛ دقیق، قابل پیش‌بینی و کاملاً وابسته به اولویت‌هایی که انتخاب کرده‌ای.</p>
       </div>
       <div class="agent-card">
-        <h3>عامل یادگیرنده (Q-Learning)</h3>
-        <p>حالت بازی را به چند ویژگی ریز تبدیل می‌کند: باتری در ۵ سطح (۰ تا ۲۰، ۲۰ تا ۴۰، ۴۰ تا ۶۰، ۶۰ تا ۸۰، ۸۰ تا ۱۰۰)، فاصلهٔ نزدیک‌ترین و بحرانی‌ترین مصدوم و فاصلهٔ شارژر هرکدام در ۳ سطح (۰ تا ۲، ۳ تا ۵، ۶ خانه یا بیشتر)، زمان باقی‌مانده در ۳ سطح و وضعیت ظرفیت حمل. برای هر حالت، ارزش هر ۶ اقدام (از جمله «نجات از مسیر امن») را در یک جدول Q نگه می‌دارد. هیچ آستانه و عددی از قبل به او داده نمی‌شود؛ خودش در طول آموزش یاد می‌گیرد مثلاً زیر چه باتری‌ای شارژ کند یا تا چه فاصله‌ای دنبال مصدوم بحرانی برود.</p>
+        <h3>عامل یادگیرنده</h3>
+        <p>حالت بازی را به چند ویژگی ریز تبدیل می‌کند: باتری در ۵ سطح (۰ تا ۲۰، ۲۰ تا ۴۰، ۴۰ تا ۶۰، ۶۰ تا ۸۰، ۸۰ تا ۱۰۰)، فاصلهٔ نزدیک‌ترین و بحرانی‌ترین مصدوم و فاصلهٔ شارژر هرکدام در ۳ سطح (۰ تا ۲، ۳ تا ۵، ۶ خانه یا بیشتر)، زمان باقی‌مانده در ۳ سطح و وضعیت ظرفیت حمل. برای هر حالت، ارزش هر ۶ اقدام (از جمله «نجات از مسیر امن») را در یک جدول یادگیری نگه می‌دارد. هیچ آستانه و عددی از قبل به او داده نمی‌شود؛ خودش در طول آموزش یاد می‌گیرد مثلاً زیر چه باتری‌ای شارژ کند یا تا چه فاصله‌ای دنبال مصدوم بحرانی برود.</p>
         <div class="prog"><i id="trainProg"></i></div>
         <p class="note" id="trainInfo">هنوز آموزشی انجام نشده است.</p>
         <svg id="trainChart" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -354,7 +354,7 @@
 
     <div class="model-zone" id="modelZone">
       <h3>استراتژی مدل — چیزی که عامل یاد گرفته است</h3>
-      <p>اینجا می‌توانی مغز عامل یادگیرنده را بخوانی: بعد از آموزش، پرتکرارترین وضعیت‌هایی که عامل در تمرین دیده، به زبان ساده و به شکل «اگر … آنگاه …» نوشته می‌شود؛ همراه با اینکه هر وضعیت چند بار دیده شده و بهترین اقدامش در جدول Q چقدر ارزش دارد. این بخش بعد از هر آموزش و یادگیریِ دوباره، خودکار به‌روز می‌شود.</p>
+      <p>اینجا می‌توانی مغز عامل یادگیرنده را بخوانی: بعد از آموزش، پرتکرارترین وضعیت‌هایی که عامل در تمرین دیده، به زبان ساده و به شکل «اگر … آنگاه …» نوشته می‌شود؛ همراه با اینکه هر وضعیت چند بار دیده شده و بهترین اقدامش در جدول یادگیری چقدر ارزش دارد. این بخش بعد از هر آموزش و یادگیریِ دوباره، خودکار به‌روز می‌شود.</p>
       <div id="modelStrategy"></div>
     </div>
 
@@ -385,7 +385,7 @@
   <!-- ===== Local download / run ===== -->
   <section class="panel compare" aria-label="دانلود و اجرای لوکال">
     <h2>دانلود کد کامل و اجرای لوکال</h2>
-    <p class="sub">کل این بازی — صفحه، سبک‌ها و همهٔ منطق بازی و Q-Learning — در <b>یک فایل HTML تکی و مستقل</b> است؛ نه سرور می‌خواهد، نه دیتابیس، نه نصب هیچ برنامه‌ای. همین فایل را دانلود کن و روی کامپیوتر خودت اجرایش کن.</p>
+    <p class="sub">کل این بازی — صفحه، سبک‌ها و همهٔ منطق بازی و یادگیری تقویتی — در <b>یک فایل تکی و مستقل</b> است؛ نه سرور می‌خواهد، نه دیتابیس، نه نصب هیچ برنامه‌ای. همین فایل را دانلود کن و روی کامپیوتر خودت اجرایش کن.</p>
     <div class="local-grid">
       <div>
         <h3>روش ۱ — ساده‌ترین راه</h3>
@@ -394,7 +394,7 @@
           <li>روی فایل دانلودشده دوبار کلیک کن؛ در مرورگرت (کروم، فایرفاکس، اج…) باز می‌شود و بازی کامل کار می‌کند.</li>
         </ol>
         <div class="row" style="margin-top:12px">
-          <button class="btn primary" id="downloadBtn" type="button">⬇ دانلود فایل کامل بازی (index.html)</button>
+          <button class="btn primary" id="downloadBtn" type="button">⬇ دانلود فایل کامل بازی</button>
         </div>
         <p class="status-line" id="downloadNote"></p>
       </div>
@@ -405,7 +405,7 @@
         <p>یا اگر پایتون نداری:</p>
         <p class="code-box">npx serve .</p>
         <p>بعد در مرورگر برو به <bdi>http://localhost:8000/rescue-mission.html</bdi></p>
-        <p class="note">تنها وابستگی اینترنتی فایل، فونت وزیرمتن از گوگل‌فونت است؛ آفلاین هم بازی کامل کار می‌کند و فقط فونت جایگزین سیستم نمایش داده می‌شود. کد را با هر ویرایشگری (مثل VS Code) می‌توانی باز کنی و تغییر بدهی — بخش‌های بازی با کامنت‌های فارسی از هم جدا شده‌اند.</p>
+        <p class="note">تنها وابستگی اینترنتی فایل، فونت وزیرمتن از گوگل‌فونت است؛ آفلاین هم بازی کامل کار می‌کند و فقط فونت جایگزین سیستم نمایش داده می‌شود. کد را با هر ویرایشگر متنی می‌توانی باز کنی و تغییر بدهی — بخش‌های بازی با کامنت‌های فارسی از هم جدا شده‌اند.</p>
       </div>
     </div>
   </section>
@@ -544,7 +544,7 @@ const PARAM_FIELDS = [
   { key:"pointsCritical",    label:"امتیاز مصدوم بحرانی",       min:0,   max:100,  step:5 },
   { key:"pointsUrgent",      label:"امتیاز مصدوم فوری",         min:0,   max:100,  step:5 },
   { key:"pointsNormal",      label:"امتیاز مصدوم عادی",         min:0,   max:100,  step:5 },
-  { sec:"یادگیری تقویتی (Q-Learning)" },
+  { sec:"یادگیری تقویتی" },
   { key:"trainEpisodes",    label:"مأموریت تمرینی آموزش عامل",  min:50,  max:2000, step:50 },
   { key:"finetuneEpisodes", label:"مأموریت تمرینی یادگیری دوباره", min:50, max:1000, step:50 },
   { key:"evalMaps",         label:"تعداد نقشه‌های مقایسه",      min:5,   max:100,  step:5 },
@@ -962,8 +962,8 @@ function renderRules(){
       '<button class="icon-btn" data-up="'+i+'" type="button" aria-label="بالا بردن اولویت" '+(i===0?"disabled":"")+'>↑</button>' +
       '<button class="icon-btn" data-down="'+i+'" type="button" aria-label="پایین بردن اولویت" '+(i===rules.length-1?"disabled":"")+'>↓</button>' +
       '<button class="icon-btn del" data-del="'+i+'" type="button" aria-label="حذف قانون">✕</button></span></div>' +
-      '<div class="ifthen"><span class="tag if">اگر IF</span><select data-cond="'+i+'" aria-label="شرط قانون ' + faNum(i+1) + '">' + condOpts + '</select>' + thresh +
-      '<span class="tag then">آنگاه THEN</span><select data-act="'+i+'" aria-label="اقدام قانون ' + faNum(i+1) + '">' + actOpts + '</select></div>';
+      '<div class="ifthen"><span class="tag if">اگر</span><select data-cond="'+i+'" aria-label="شرط قانون ' + faNum(i+1) + '">' + condOpts + '</select>' + thresh +
+      '<span class="tag then">آنگاه</span><select data-act="'+i+'" aria-label="اقدام قانون ' + faNum(i+1) + '">' + actOpts + '</select></div>';
     list.appendChild(card);
   });
   list.querySelectorAll("[data-cond]").forEach(s=> s.addEventListener("change", e=>{ const i = Number(e.target.dataset.cond); rules[i].id = e.target.value; const d = condDef(rules[i].id); if(d && d.param) rules[i].threshold = d.param.def; else delete rules[i].threshold; delete rules[i].value; renderRules(); validate(false); }));
@@ -1140,7 +1140,7 @@ function trainQL(episodes, capacity, done){
       }
       qTrained = true; qTraining = false;
       renderModelStrategy();
-      $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول Q." +
+      $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول یادگیری." +
         (restored
           ? " جدول نهایی روی نقشه‌های اعتبارسنجی امتیاز " + faNum(finalScore.toFixed(1)) + " گرفت، اما بهترین نسخهٔ دیده‌شده در طول آموزش امتیاز " + faNum(bestValScore.toFixed(1)) + " داشت (مأموریت تمرینی " + faNum(bestValAt) + ")؛ همان بهترین نسخه حفظ شد تا آموزشِ تمام‌شده در یک نقطهٔ بد، عامل را خراب نکند."
           : " بهترین امتیاز اعتبارسنجی: " + faNum(bestValScore.toFixed(1)) + " — جدول نهایی همان بهترین نسخه است.") +
@@ -1159,7 +1159,7 @@ $("resetTrainBtn").addEventListener("click", ()=>{
   drawCurve();
   renderModelStrategy();
   $("trainProg").style.width = "0%";
-  $("trainInfo").textContent = "همه‌چیز از صفر شروع شد: جدول Q، شمار مأموریت‌های تمرینی، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده پاک شدند. حالا دکمهٔ آموزش را بزن تا عامل از اول یاد بگیرد.";
+  $("trainInfo").textContent = "همه‌چیز از صفر شروع شد: جدول یادگیری، شمار مأموریت‌های تمرینی، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده پاک شدند. حالا دکمهٔ آموزش را بزن تا عامل از اول یاد بگیرد.";
   $("evalBtn").disabled = true; $("finetuneBtn").disabled = true;
 });
 function drawCurve(){
@@ -1200,7 +1200,7 @@ function renderModelStrategy(){
   html += '<div class="model-list">';
   for(const e of top){
     html += '<div class="model-row"><span class="if-part">اگر ' + statePhrase(e.stateKey) + '</span> ← <span class="then-part">آنگاه: ' + actLabel(e.actionId) + '</span>' +
-      '<span class="meta">این وضعیت ' + faNum(e.count) + ' بار در آموزش دیده شده — ارزش بهترین اقدام در جدول Q: ' + faNum(e.q.toFixed(2)) + '</span></div>';
+      '<span class="meta">این وضعیت ' + faNum(e.count) + ' بار در آموزش دیده شده — ارزش بهترین اقدام در جدول یادگیری: ' + faNum(e.q.toFixed(2)) + '</span></div>';
   }
   html += '</div>';
   if(entries.length > top.length) html += '<p class="note" style="margin-top:8px">… و ' + faNum(entries.length - top.length) + ' وضعیت دیگر که کمتر دیده شده‌اند و اینجا نشان داده نمی‌شوند.</p>';
@@ -1227,7 +1227,7 @@ function evaluate(afterFinetune){
   const rl = evalAgent(st => QACT[qChoose(st, 0)], cap);
   const rows = [
     { name: "استراتژی تو", color: "var(--orange)", r: human },
-    { name: afterFinetune ? "عامل یادگیرنده (بعد از یادگیری دوباره)" : "عامل یادگیرنده (Q-Learning)", color: "var(--teal)", r: rl }
+    { name: afterFinetune ? "عامل یادگیرنده (بعد از یادگیری دوباره)" : "عامل یادگیرنده", color: "var(--teal)", r: rl }
   ];
   const maxScore = Math.max.apply(null, rows.map(x=>x.r.score)) || 1;
   let html = '<table class="results"><tr><th>عامل</th><th>میانگین امتیاز</th><th>مصدوم نجات‌یافته (از ' + faNum(PARAMS.survivorsCritical + PARAMS.survivorsUrgent + PARAMS.survivorsNormal) + ')</th><th>تکمیل مأموریت</th><th>باتری باقی‌مانده</th><th>زمان مصرفی</th></tr>';
@@ -1264,7 +1264,7 @@ function showShockBanner(scenario, diffs){
     '<div class="shock-title">⚠ محیط ناگهان عوض شد! — ' + scenario.title + '</div>' +
     '<div class="shock-changes">چه چیزهایی عوض شد؟<br>' + changesTxt + '</div>' +
     '<p><b>استراتژی قبلی‌ات دیگر تضمین‌شده نیست.</b> قانون‌هایت را دست نزدیم تا خودت ببینی در محیط جدید چطور عمل می‌کنند. قانون‌ها را اصلاح کن، مأموریت را دوباره اجرا کن و بعد دوباره دکمهٔ «اجرای مقایسه» را بزن.</p>' +
-    '<p><b>یادآوری دربارهٔ Q-Learning:</b> عامل یادگیرنده هم روی محیط قبلی آموزش دیده است؛ تا دکمهٔ «یادگیری دوباره در محیط جدید» را نزنی، امتیازش در این محیط تازه احتمالاً افت می‌کند — درست مثل استراتژی ثابت تو.</p>';
+    '<p><b>یادآوری دربارهٔ عامل یادگیرنده:</b> عامل یادگیرنده هم روی محیط قبلی آموزش دیده است؛ تا دکمهٔ «یادگیری دوباره در محیط جدید» را نزنی، امتیازش در این محیط تازه احتمالاً افت می‌کند — درست مثل استراتژی ثابت تو.</p>';
   banner.hidden = false;
 }
 function applyShock(){
