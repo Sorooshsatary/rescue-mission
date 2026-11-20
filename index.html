@@ -224,7 +224,9 @@
   /* ---------- مرحله‌بندی ---------- */
   .stage-badge{ background:color-mix(in srgb, var(--teal) 13%, var(--panel)); border:1px solid var(--teal); color:var(--teal-dark); border-radius:999px; padding:5px 14px; font-size:13.5px; font-weight:800; white-space:nowrap; }
   .stage-hidden{ display:none !important; }
-  .stage-lock-card{ border:2px dashed color-mix(in srgb, var(--teal) 55%, var(--line)); align-self:start; }
+  #shockPanel{ margin-top:16px; }
+  #shockPanel .shock-zone{ margin-top:0; }
+  .stage-lock-card{ border:2px dashed color-mix(in srgb, var(--teal) 55%, var(--line)); margin-top:16px; }
   .stage-lock-card h2{ margin:0 0 4px; font-size:19px; font-weight:800; }
   .stage-err{ color:var(--red); font-size:13.5px; font-weight:700; margin:8px 0 0; min-height:1.2em; }
   .stage-err:empty{ display:none; }
@@ -279,17 +281,6 @@
         </div>
         <div class="saved-list" id="savedList"></div>
       </div>
-    </section>
-
-    <!-- ===== کارت قفل مرحلهٔ ۲ ===== -->
-    <section class="panel stage-lock-card" id="stageLockCard" aria-label="مرحله ۲: آزمایش و مقایسه">
-      <h2>مرحله ۲: آزمایش و مقایسه</h2>
-      <p class="sub">برای آزمایش استراتژی‌ات و مقایسه با ربات، رمز مرحله بعد را که آموزگار اعلام می‌کند وارد کن.</p>
-      <div class="row">
-        <input type="text" id="stageCodeInput" placeholder="رمز مرحله بعد" aria-label="رمز مرحله بعد" inputmode="numeric" autocomplete="off" style="flex:1; min-width:140px" />
-        <button class="btn primary" id="stageUnlockBtn" type="button">باز کردن مرحله بعد</button>
-      </div>
-      <p class="stage-err" id="stageCodeErr" role="alert"></p>
     </section>
 
     <!-- ===== Board ===== -->
@@ -364,6 +355,31 @@
     </section>
   </div>
 
+  <!-- ===== تغییر محیط و تنظیم سناریوها (در هر دو مرحله باز است) ===== -->
+  <section class="panel" id="shockPanel" aria-label="تغییر محیط و تنظیم سناریوها">
+    <div class="shock-zone" id="shockZone">
+      <div class="shock-zone-text">
+        <strong>آزمایش تغییر محیط</strong>
+        <span>دنیا همیشه ثابت نمی‌ماند! با این دکمه محیط ناگهان عوض می‌شود؛ قانون‌هایت دست‌نخورده می‌مانند تا خودت ببینی هنوز جواب می‌دهند یا نه.</span>
+      </div>
+      <button class="btn shock-btn" id="shockBtn" type="button">⚡ تغییر ناگهانی محیط</button>
+      <button class="btn" id="scenarioOpenBtn" type="button">تنظیم سناریوها</button>
+      <button class="btn" id="restoreEnvBtn" type="button" disabled>↩ بازگشت به محیط عادی</button>
+    </div>
+    <div class="shock-banner" id="shockBanner" hidden role="alert"></div>
+  </section>
+
+  <!-- ===== کارت قفل آموزش ربات (فقط در مرحلهٔ ۱ دیده می‌شود) ===== -->
+  <section class="panel stage-lock-card" id="stageLockCard" aria-label="آموزش ربات قفل است">
+    <h2>مرحله ۲: آموزش ربات و مقایسه</h2>
+    <p class="sub">آموزش ربات قفل است — برای آموزش ربات و مقایسه با آن، رمز مرحله بعد را که آموزگار اعلام می‌کند وارد کن.</p>
+    <div class="row">
+      <input type="text" id="stageCodeInput" placeholder="رمز مرحله بعد" aria-label="رمز مرحله بعد" inputmode="numeric" autocomplete="off" style="flex:1; min-width:140px" />
+      <button class="btn primary" id="stageUnlockBtn" type="button">باز کردن مرحله بعد</button>
+    </div>
+    <p class="stage-err" id="stageCodeErr" role="alert"></p>
+  </section>
+
   <!-- ===== Compare with Q-Learning ===== -->
   <section class="panel compare" id="comparePanel" aria-label="مقایسه با عامل یادگیرنده">
     <h2>آزمایش بزرگ: استراتژی تو در برابر ربات یادگیرنده</h2>
@@ -391,17 +407,6 @@
       <div id="modelStrategy"></div>
     </div>
 
-    <div class="shock-zone" id="shockZone">
-      <div class="shock-zone-text">
-        <strong>آزمایش تغییر محیط</strong>
-        <span>دنیا همیشه ثابت نمی‌ماند! با این دکمه محیط ناگهان عوض می‌شود؛ قانون‌هایت دست‌نخورده می‌مانند تا خودت ببینی هنوز جواب می‌دهند یا نه.</span>
-      </div>
-      <button class="btn shock-btn" id="shockBtn" type="button">⚡ تغییر ناگهانی محیط</button>
-      <button class="btn" id="scenarioOpenBtn" type="button">تنظیم سناریوها</button>
-      <button class="btn" id="restoreEnvBtn" type="button" disabled>↩ بازگشت به محیط عادی</button>
-    </div>
-    <div class="shock-banner" id="shockBanner" hidden role="alert"></div>
-
     <div class="row" style="margin-top:16px">
       <button class="btn accent" id="evalBtn" type="button" disabled>اجرای مقایسه روی ۳۰ نقشهٔ یکسان</button>
       <label style="font-size:14px">تغییر محیط آزمایش:
@@ -423,7 +428,19 @@
   <!-- ===== پنل ادمین (پارامترهای محلی) ===== -->
   <div class="admin-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="پنل ادمین">
     <div class="admin-box">
-      <div id="adminPanel">
+      <div id="adminGate">
+        <h2>پنل ادمین</h2>
+        <p class="sub">برای باز کردن پنل ادمین، رمز ادمین را وارد کن.</p>
+        <div class="row">
+          <input type="text" id="adminCodeInput" placeholder="رمز ادمین" aria-label="رمز ادمین" inputmode="numeric" autocomplete="off" style="flex:1; min-width:140px" />
+          <button class="btn primary" id="adminUnlockBtn" type="button">باز کردن پنل ادمین</button>
+        </div>
+        <p class="admin-err" id="adminCodeErr" role="alert"></p>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="adminGateClose" type="button">بستن</button>
+        </div>
+      </div>
+      <div id="adminPanel" hidden>
         <h2>پنل ادمین — پارامترها</h2>
         <p class="sub">این‌ها تنظیمات محلی‌اند و فقط در همین مرورگر ذخیره می‌شوند. این مقادیر روی محیط بازی، امتیازها و آموزش عامل یادگیرنده اثر می‌گذارند. با زدن «اعمال و ذخیره»، مأموریت جاری با پارامترهای تازه از اول شروع می‌شود. تغییر پارامترهای یادگیری، از آموزش بعدی اعمال می‌شود.</p>
         <div class="admin-sec">نمایش در سازندهٔ استراتژی</div>
@@ -1641,7 +1658,14 @@ function setShowPresets(v){
   applyPresetVisibility();
 }
 
-/* ================= پنل ادمین (مستقیم باز می‌شود) ================= */
+/* ================= پنل ادمین (با رمز ادمین باز می‌شود) ================= */
+const ADMIN_CODE = "123";
+function normalizeAdminCode(v){
+  return String(v == null ? "" : v)
+    .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .trim();
+}
 function showAdminPanel(){
   $("adminOk").textContent = ""; $("adminPanelErr").textContent = "";
   buildAdminFields();
@@ -1772,7 +1796,26 @@ function buildAdminFields(){
 }
 function openAdmin(){
   $("adminOverlay").classList.add("on");
-  showAdminPanel();
+  const gate = $("adminGate"), panel = $("adminPanel");
+  if(gate) gate.hidden = false;
+  if(panel) panel.hidden = true;
+  const inp = $("adminCodeInput"), err = $("adminCodeErr");
+  if(inp) inp.value = "";
+  if(err) err.textContent = "";
+  if(inp) inp.focus();
+}
+function tryUnlockAdmin(){
+  const inp = $("adminCodeInput"), err = $("adminCodeErr");
+  if(normalizeAdminCode(inp.value) === ADMIN_CODE){
+    if(err) err.textContent = "";
+    inp.value = "";
+    const gate = $("adminGate"), panel = $("adminPanel");
+    if(gate) gate.hidden = true;
+    if(panel) panel.hidden = false;
+    showAdminPanel();
+  } else {
+    if(err) err.textContent = "رمز درست نیست — از آموزگار بپرس.";
+  }
 }
 function closeAdmin(){ $("adminOverlay").classList.remove("on"); }
 function applyAdminParams(fromDefaults){
@@ -1795,6 +1838,9 @@ function applyAdminParams(fromDefaults){
   $("adminOk").textContent = "پارامترها اعمال و ذخیره شدند و مأموریت از اول شروع شد.";
 }
 $("adminOpen").addEventListener("click", openAdmin);
+$("adminUnlockBtn").addEventListener("click", tryUnlockAdmin);
+$("adminCodeInput").addEventListener("keydown", e=>{ if(e.key === "Enter") tryUnlockAdmin(); });
+$("adminGateClose").addEventListener("click", closeAdmin);
 $("showPresetsToggle").addEventListener("change", e=> setShowPresets(e.target.checked));
 $("adminClose").addEventListener("click", closeAdmin);
 $("adminPresetSave").addEventListener("click", saveAdminPreset);
@@ -1816,13 +1862,12 @@ function normalizeStageCode(v){
 function applyStage(stage){
   currentStage = stage === 2 ? 2 : 1;
   const locked = currentStage === 1;
-  ["boardPanel", "inspectorPanel", "comparePanel"].forEach(id=>{
-    const el = $(id); if(el) el.classList.toggle("stage-hidden", locked);
-  });
+  /* در مرحلهٔ ۱ فقط بخش «آزمایش بزرگ» (آموزش عامل، مقایسه و استراتژی مدل) قفل است؛
+     سازنده، صفحهٔ مأموریت زنده، بازرس تصمیم، بازپخش و تنظیم سناریوها باز می‌مانند. */
+  const cp = $("comparePanel"); if(cp) cp.classList.toggle("stage-hidden", locked);
   const card = $("stageLockCard"); if(card) card.classList.toggle("stage-hidden", !locked);
   const badge = $("stageBadge"); if(badge) badge.textContent = locked ? "مرحله ۱: ساخت استراتژی" : "مرحله ۲: آزمایش و مقایسه";
   try { localStorage.setItem(STAGE_KEY, String(currentStage)); } catch(e){}
-  if(locked){ const sc = $("scenarioOverlay"); if(sc) sc.classList.remove("on"); }
 }
 function loadStage(){
   let s = 1;
