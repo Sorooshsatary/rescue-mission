@@ -59,8 +59,11 @@
   .tag.then{ background:var(--orange); color:#fff; }
   select, input[type="text"]{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; }
   select:focus, input:focus{ outline:2px solid var(--teal); outline-offset:1px; }
-  .thresh-row{ grid-column:2; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .thresh-row{ grid-column:2; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); flex-wrap:wrap; }
   .thresh-row select{ width:auto; }
+  .thresh-row input[type="number"]{ width:92px; font:inherit; font-size:14px; font-weight:700; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; text-align:center; }
+  .thresh-row input[type="number"]:focus{ outline:2px solid var(--teal); outline-offset:1px; }
+  .thresh-row .unit{ font-weight:700; color:var(--ink); }
   .btn{ font:inherit; font-weight:700; font-size:14.5px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--ink); padding:8px 16px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; justify-content:center; }
   .btn:hover{ border-color:var(--teal); }
   .btn.primary{ background:var(--teal); border-color:var(--teal); color:#fff; }
@@ -155,6 +158,15 @@
   .bar-fill{ height:100%; border-radius:6px; }
   #trainChart{ width:100%; height:90px; display:block; margin-top:8px; }
   .note{ font-size:13px; color:var(--muted); }
+  /* ---------- بهینه‌سازی عددها ---------- */
+  .opt-zone{ margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--panel2); }
+  .opt-zone h3{ margin:0 0 4px; font-size:16.5px; font-weight:800; }
+  .opt-zone p{ margin:0 0 10px; color:var(--muted); font-size:13.5px; }
+  .opt-results{ margin-top:12px; display:grid; gap:6px; font-size:14px; }
+  .opt-results:empty{ display:none; }
+  .opt-row{ display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:7px 12px; }
+  .opt-row .chg{ color:var(--orange); font-weight:800; }
+  .opt-row .same{ color:var(--muted); }
   /* ---------- Sudden environment change ---------- */
   .shock-zone{ margin-top:16px; border:2px dashed color-mix(in srgb, var(--red) 55%, var(--line)); background:color-mix(in srgb, var(--red) 6%, var(--panel2)); border-radius:12px; padding:14px 16px; display:flex; flex-wrap:wrap; gap:12px 16px; align-items:center; }
   .shock-zone-text{ flex:1 1 260px; }
@@ -335,6 +347,7 @@
         <svg id="trainChart" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true"></svg>
         <div class="row" style="margin-top:8px">
           <button class="btn primary" id="trainBtn" type="button">آموزش عامل یادگیرنده (۴۰۰ مأموریت تمرینی)</button>
+          <button class="btn" id="resetTrainBtn" type="button">شروع دوبارهٔ آموزش از صفر</button>
         </div>
       </div>
     </div>
@@ -348,6 +361,17 @@
       <button class="btn" id="restoreEnvBtn" type="button" disabled>↩ بازگشت به محیط عادی</button>
     </div>
     <div class="shock-banner" id="shockBanner" hidden role="alert"></div>
+
+    <div class="opt-zone" id="optZone">
+      <h3>بهینه‌سازی عددهای استراتژی</h3>
+      <p>عددهای قانون‌هایت (درصد باتری، فاصله‌ها، قدم‌های باقی‌مانده و حاشیهٔ بازگشت) را لازم نیست حدس بزنی: این دکمه برای هر عدد چند مقدار مختلف را امتحان می‌کند، هر ترکیب را روی همان نقشه‌های مقایسه اجرا می‌کند و بهترین ترکیب را به تو نشان می‌دهد. ترتیب قانون‌ها و اقدام‌ها دست نمی‌خورد؛ فقط عددها جابه‌جا می‌شوند.</p>
+      <div class="row">
+        <button class="btn primary" id="optimizeBtn" type="button">🔍 بهینه‌سازی عددها</button>
+        <span class="note" id="optStatus">عددهای فعلی استراتژی‌ات نقطهٔ شروع جست‌وجوست.</span>
+      </div>
+      <div class="prog" id="optProgWrap" hidden><i id="optProg"></i></div>
+      <div class="opt-results" id="optOut"></div>
+    </div>
 
     <div class="row" style="margin-top:16px">
       <button class="btn accent" id="evalBtn" type="button" disabled>اجرای مقایسه روی ۳۰ نقشهٔ یکسان</button>
@@ -435,22 +459,49 @@ const key = (x,y) => y*12 + x;
 const inB = (x,y) => x>=0 && x<12 && y>=0 && y<12;
 
 /* ================= تعریف شرط‌ها و اقدام‌ها ================= */
+/* هر شرطی که مؤلفهٔ کمی دارد، در فیلد param توصیف می‌شود: مقدار پیش‌فرض، بازه و واحد.
+   عدد انتخابی دانش‌آموز در rule.threshold ذخیره می‌شود (همان فیلدی که قبلاً فقط برای باتری بود)
+   تا همراه قانون در استراتژی‌های ذخیره‌شده بماند و در ارزیابی، برچسب قانون و بازرس تصمیم استفاده شود. */
 const CONDITIONS = [
   { id:"full",            label:"ظرفیت حمل ربات پر است" },
   { id:"carryingAny",     label:"ربات حداقل یک مصدوم حمل می‌کند" },
-  { id:"batteryBelow",    label:"باتری کمتر از حد انتخابی است", threshold:true },
-  { id:"batteryAbove",    label:"باتری بیشتر از حد انتخابی است", threshold:true },
-  { id:"criticalNear",    label:"مصدوم بحرانی در نزدیکی است (حداکثر ۳ خانه)" },
+  { id:"batteryBelow",    label:"باتری کمتر از حد انتخابی است", param:{ kind:"battery", def:30, min:1, max:100, step:1, inputLabel:"درصد باتری:", unit:"٪" } },
+  { id:"batteryAbove",    label:"باتری بیشتر از حد انتخابی است", param:{ kind:"battery", def:30, min:1, max:100, step:1, inputLabel:"درصد باتری:", unit:"٪" } },
+  { id:"criticalNear",    label:"مصدوم بحرانی در نزدیکی است", param:{ kind:"distance", def:3, min:0, max:11, step:1, inputLabel:"حداکثر فاصله:", unit:"خانه" } },
   { id:"criticalExists",  label:"هنوز مصدوم بحرانی نجات‌نیافته‌ای در نقشه هست (هر فاصله‌ای)" },
-  { id:"urgentNear",      label:"مصدوم فوری در نزدیکی است (حداکثر ۳ خانه)" },
-  { id:"survivorNear",    label:"نزدیک‌ترین مصدوم حداکثر ۳ خانه فاصله دارد" },
-  { id:"noSurvivorVisible", label:"هیچ مصدومی در محدودهٔ دید نیست" },
-  { id:"baseNear",        label:"پایگاه نزدیک است (حداکثر ۳ خانه)" },
-  { id:"baseFar",         label:"پایگاه دور است (بیش از ۵ خانه)" },
-  { id:"chargerNear",     label:"ایستگاه شارژ نزدیک است (حداکثر ۳ خانه)" },
-  { id:"timeLow",         label:"زمان کمی تا پایان مأموریت مانده (۳۰ قدم یا کمتر)" },
-  { id:"lowForReturn",    label:"باتری برای بازگشت به پایگاه کافی نیست" }
+  { id:"urgentNear",      label:"مصدوم فوری در نزدیکی است", param:{ kind:"distance", def:3, min:0, max:11, step:1, inputLabel:"حداکثر فاصله:", unit:"خانه" } },
+  { id:"survivorNear",    label:"نزدیک‌ترین مصدوم در نزدیکی است", param:{ kind:"distance", def:3, min:0, max:11, step:1, inputLabel:"حداکثر فاصله:", unit:"خانه" } },
+  { id:"noSurvivorVisible", label:"هیچ مصدومی در محدودهٔ دید نیست", param:{ kind:"distanceFar", def:5, min:0, max:11, step:1, inputLabel:"محدودهٔ دید (فاصله):", unit:"خانه" } },
+  { id:"baseNear",        label:"پایگاه نزدیک است", param:{ kind:"distance", def:3, min:0, max:11, step:1, inputLabel:"حداکثر فاصله:", unit:"خانه" } },
+  { id:"baseFar",         label:"پایگاه دور است", param:{ kind:"distanceFar", def:5, min:0, max:11, step:1, inputLabel:"بیشتر از فاصله:", unit:"خانه" } },
+  { id:"chargerNear",     label:"ایستگاه شارژ نزدیک است", param:{ kind:"distance", def:3, min:0, max:11, step:1, inputLabel:"حداکثر فاصله:", unit:"خانه" } },
+  { id:"timeLow",         label:"زمان کمی تا پایان مأموریت مانده", param:{ kind:"time", def:30, min:0, max:400, step:1, inputLabel:"قدم باقی‌مانده:", unit:"قدم یا کمتر" } },
+  { id:"lowForReturn",    label:"باتری برای بازگشت به پایگاه کافی نیست", param:{ kind:"margin", def:4, min:0, max:30, step:1, inputLabel:"حاشیهٔ باتری:", unit:"واحد باتری" } }
 ];
+const condDef = id => CONDITIONS.find(x=>x.id===id);
+/* عدد مؤثر یک قانون: اول مقدار ذخیره‌شدهٔ خود قانون (threshold یا value در ذخیره‌های قدیمی)، وگرنه پیش‌فرض شرط */
+function ruleNum(rule){
+  if(!rule) return null;
+  const def = condDef(rule.id);
+  if(!def || !def.param) return null;
+  let v = rule.threshold;
+  if(v === undefined || v === null) v = rule.value;
+  v = Number(v);
+  if(!isFinite(v)) v = def.param.def;
+  return Math.min(def.param.max, Math.max(def.param.min, Math.round(v)));
+}
+function setRuleNum(rule, v){
+  const def = condDef(rule.id);
+  if(!def || !def.param) return;
+  rule.threshold = Math.min(def.param.max, Math.max(def.param.min, Math.round(Number(v))));
+  delete rule.value;
+}
+/* نرمال‌سازی قانون‌ها (مثلاً هنگام بارگذاری استراتژی ذخیره‌شدهٔ قدیمی): برای هر شرط کمی، عدد پیش‌فرض صریح نوشته می‌شود */
+function normalizeRules(list){
+  if(!Array.isArray(list)) return list;
+  list.forEach(r=>{ if(r && condDef(r.id) && condDef(r.id).param) r.threshold = ruleNum(r); });
+  return list;
+}
 const ACTIONS = [
   { id:"rescueNearest", label:"نجات نزدیک‌ترین مصدوم" },
   { id:"rescueUrgent",  label:"نجات بحرانی‌ترین مصدوم" },
@@ -461,7 +512,22 @@ const ACTIONS = [
   { id:"chargeSmart",   label:"شارژ هوشمند (باتری زیر ۸۰٪: شارژ؛ وگرنه: نجات)" },
   { id:"search",        label:"جست‌وجوی مصدومان" }
 ];
-const condLabel = c => CONDITIONS.find(x=>x.id===c.id).label.replace("حد انتخابی", faNum(c.threshold ?? 30) + "٪");
+function condLabel(c){
+  const def = condDef(c.id);
+  const base = def ? def.label : c.id;
+  if(!def || !def.param) return base;
+  const n = faNum(ruleNum(c));
+  switch(def.param.kind){
+    case "battery": return base.replace("حد انتخابی", n + "٪");
+    case "distance": return base + " (حداکثر " + n + " خانه)";
+    case "distanceFar":
+      if(c.id === "baseFar") return base + " (بیش از " + n + " خانه)";
+      return base + " (نزدیک‌ترین مصدوم بیش از " + n + " خانه دور است)";
+    case "time": return base + " (" + n + " قدم یا کمتر)";
+    case "margin": return base + " (با حاشیهٔ " + n + " واحد باتری)";
+  }
+  return base;
+}
 const actLabel  = id => ACTIONS.find(x=>x.id===id).label;
 
 /* ================= پارامترهای قابل تنظیم در پنل ادمین ================= */
@@ -592,21 +658,22 @@ function observe(st){
     timeLeft: st.maxTime - st.time };
 }
 function evalCondition(rule, obs){
+  const n = ruleNum(rule); // عدد انتخابی دانش‌آموز برای این قانون (یا پیش‌فرض شرط)
   switch(rule.id){
     case "full": return obs.carrying >= obs.capacity;
     case "carryingAny": return obs.carrying > 0;
-    case "batteryBelow": return obs.battery < (rule.threshold ?? 30);
-    case "batteryAbove": return obs.battery > (rule.threshold ?? 30);
-    case "criticalNear": return !!(obs.crit && obs.critD <= 3);
+    case "batteryBelow": return obs.battery < n;
+    case "batteryAbove": return obs.battery > n;
+    case "criticalNear": return !!(obs.crit && obs.critD <= n);
     case "criticalExists": return obs.critExists;
-    case "urgentNear": return !!(obs.urg && obs.urgD <= 3);
-    case "survivorNear": return !!(obs.nearest && obs.nearestD <= 3);
-    case "noSurvivorVisible": return !obs.nearest || obs.nearestD > 5;
-    case "baseNear": return obs.baseD <= 3;
-    case "baseFar": return obs.baseD > 5;
-    case "chargerNear": return obs.chargerD <= 3;
-    case "timeLow": return obs.timeLeft <= 30;
-    case "lowForReturn": return obs.battery < obs.baseCost + PARAMS.returnMargin;
+    case "urgentNear": return !!(obs.urg && obs.urgD <= n);
+    case "survivorNear": return !!(obs.nearest && obs.nearestD <= n);
+    case "noSurvivorVisible": return !obs.nearest || obs.nearestD > n;
+    case "baseNear": return obs.baseD <= n;
+    case "baseFar": return obs.baseD > n;
+    case "chargerNear": return obs.chargerD <= n;
+    case "timeLow": return obs.timeLeft <= n;
+    case "lowForReturn": return obs.battery < obs.baseCost + n;
   }
   return false;
 }
@@ -692,7 +759,7 @@ function humanDecision(rules, st){
 let rules = [
   { id:"full", action:"toBase" },
   { id:"batteryBelow", threshold:30, action:"toCharger" },
-  { id:"criticalNear", action:"rescueUrgent" }
+  { id:"criticalNear", threshold:3, action:"rescueUrgent" }
 ];
 let mapSeed = 7;
 let game = genMap(mapSeed, PARAMS.capacity);
@@ -716,6 +783,8 @@ let savedStrategies = (function(){
 function persistSaved(){
   try { localStorage.setItem(SAVED_KEY, JSON.stringify(savedStrategies)); } catch(e){ /* در حالت private یا پر بودن حافظه ممکن است ذخیره نشود */ }
 }
+/* استراتژی‌های ذخیره‌شدهٔ قدیمی که برای شرط‌های فاصله/زمان عدد نداشتند، با پیش‌فرض همان شرط کامل می‌شوند */
+savedStrategies.forEach(s => normalizeRules(s.rules));
 
 function snapshot(dec){
   return { robot:{...game.robot}, battery:game.battery, time:game.time, score:game.score,
@@ -885,9 +954,12 @@ function renderRules(){
     const actOpts = ACTIONS.map(a=>'<option value="'+a.id+'"'+(a.id===r.action?" selected":"")+">"+a.label+"</option>").join("");
     const cond = CONDITIONS.find(c=>c.id===r.id);
     let thresh = "";
-    if(cond.threshold){
-      thresh = '<div class="thresh-row"><span>حد باتری:</span><select data-thresh="'+i+'" aria-label="حد باتری">' +
-        [20,30,50,70].map(t=>'<option value="'+t+'"'+(t===(r.threshold??30)?" selected":"")+">"+faNum(t)+"٪</option>").join("") + "</select></div>";
+    if(cond.param){
+      const p = cond.param;
+      thresh = '<div class="thresh-row"><span>' + p.inputLabel + '</span>' +
+        '<input type="number" data-thresh="'+i+'" value="' + ruleNum(r) + '" min="' + p.min + '" max="' + p.max + '" step="' + p.step + '" aria-label="عدد شرط قانون ' + faNum(i+1) + '" />' +
+        '<span class="unit">' + p.unit + '</span>' +
+        '<span>(پیش‌فرض: ' + faNum(p.def) + ')</span></div>';
     }
     card.innerHTML =
       '<div class="rule-head"><span class="prio">' + faNum(i+1) + '</span><span class="rtitle">قانون ' + faNum(i+1) + '</span>' +
@@ -899,9 +971,10 @@ function renderRules(){
       '<span class="tag then">آنگاه THEN</span><select data-act="'+i+'" aria-label="اقدام قانون ' + faNum(i+1) + '">' + actOpts + '</select></div>';
     list.appendChild(card);
   });
-  list.querySelectorAll("[data-cond]").forEach(s=> s.addEventListener("change", e=>{ const i = Number(e.target.dataset.cond); rules[i].id = e.target.value; if((e.target.value==="batteryBelow" || e.target.value==="batteryAbove") && !rules[i].threshold) rules[i].threshold = 30; renderRules(); validate(false); }));
+  list.querySelectorAll("[data-cond]").forEach(s=> s.addEventListener("change", e=>{ const i = Number(e.target.dataset.cond); rules[i].id = e.target.value; const d = condDef(rules[i].id); if(d && d.param) rules[i].threshold = d.param.def; else delete rules[i].threshold; delete rules[i].value; renderRules(); validate(false); }));
   list.querySelectorAll("[data-act]").forEach(s=> s.addEventListener("change", e=>{ rules[Number(e.target.dataset.act)].action = e.target.value; validate(false); }));
-  list.querySelectorAll("[data-thresh]").forEach(s=> s.addEventListener("change", e=>{ rules[Number(e.target.dataset.thresh)].threshold = Number(e.target.value); validate(false); }));
+  list.querySelectorAll("[data-thresh]").forEach(s=> s.addEventListener("input", e=>{ const i = Number(e.target.dataset.thresh); setRuleNum(rules[i], e.target.value); validate(false); }));
+  list.querySelectorAll("[data-thresh]").forEach(s=> s.addEventListener("change", e=>{ const i = Number(e.target.dataset.thresh); setRuleNum(rules[i], e.target.value); e.target.value = ruleNum(rules[i]); validate(false); }));
   list.querySelectorAll("[data-up]").forEach(b=> b.addEventListener("click", ()=>{ const i = Number(b.dataset.up); [rules[i-1], rules[i]] = [rules[i], rules[i-1]]; renderRules(); validate(false); }));
   list.querySelectorAll("[data-down]").forEach(b=> b.addEventListener("click", ()=>{ const i = Number(b.dataset.down); [rules[i+1], rules[i]] = [rules[i], rules[i+1]]; renderRules(); validate(false); }));
   list.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=>{ rules.splice(Number(b.dataset.del),1); renderRules(); validate(false); }));
@@ -912,29 +985,30 @@ function validate(showOk){
   if(!rules.length) warns.push("هیچ قانونی تعریف نشده است؛ ربات در همهٔ قدم‌ها از رفتار پیش‌فرض استفاده می‌کند.");
   const seen = new Set();
   rules.forEach((r,i)=>{
-    const k = r.id + ":" + (r.threshold ?? "");
+    const k = r.id + ":" + (ruleNum(r) ?? "");
     if(seen.has(k)) warns.push("قانون " + faNum(i+1) + " شرط تکراری دارد؛ قانون بالاتر همیشه زودتر اجرا می‌شود و این قانون شاید هیچ‌وقت نوبتش نرسد.");
     seen.add(k);
     if(r.id === "full" && (r.action === "rescueNearest" || r.action === "rescueUrgent" || r.action === "rescueSafe" || r.action === "search"))
       warns.push("قانون " + faNum(i+1) + " ناسازگار است: وقتی ظرفیت پر است، ربات نمی‌تواند مصدوم دیگری بردارد؛ اقدام‌هایی مثل «بازگشت به پایگاه» منطقی‌ترند.");
-    if(r.id === "batteryBelow" && r.action !== "toCharger" && (r.threshold ?? 30) <= 30)
+    if(r.id === "batteryBelow" && r.action !== "toCharger" && r.action !== "chargeSmart" && (ruleNum(r) ?? 30) <= 30)
       warns.push("قانون " + faNum(i+1) + ": باتری خیلی کم است ولی اقدام، رفتن به شارژر نیست؛ ربات ممکن است وسط راه خاموش شود.");
   });
   if(!rules.some(r=>r.action === "toBase")) warns.push("هیچ قانونی ربات را به پایگاه برنمی‌گرداند (مگر قانون «ظرفیت پر» را داشته باشی)؛ مصدومان فقط وقتی امتیاز می‌گیرند که به پایگاه تحویل شوند.");
   $("warnBox").innerHTML = warns.length ? warns.map(w=>"⚠ " + w).join("<br>") : (showOk ? "✓ استراتژی‌ات از نظر منطقی سالم است. حالا اجرایش کن و نتیجه را ببین!" : "");
   return warns;
 }
-$("addRule").addEventListener("click", ()=>{ rules.push({ id:"survivorNear", action:"rescueNearest" }); renderRules(); validate(false); });
+$("addRule").addEventListener("click", ()=>{ rules.push({ id:"survivorNear", threshold:3, action:"rescueNearest" }); renderRules(); validate(false); });
 $("checkStrategy").addEventListener("click", ()=> validate(true));
-$("presetA").addEventListener("click", ()=>{ rules = [ { id:"criticalNear", action:"rescueUrgent" }, { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"full", action:"toBase" } ]; renderRules(); validate(false); });
-$("presetB").addEventListener("click", ()=>{ rules = [ { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"full", action:"toBase" }, { id:"criticalNear", action:"rescueUrgent" } ]; renderRules(); validate(false); });
-$("presetC").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"criticalExists", action:"rescueUrgent" }, { id:"survivorNear", action:"rescueNearest" }, { id:"batteryBelow", threshold:20, action:"toCharger" } ]; renderRules(); validate(false); });
-$("presetD").addEventListener("click", ()=>{ rules = [ { id:"batteryBelow", threshold:50, action:"toCharger" }, { id:"lowForReturn", action:"toCharger" }, { id:"full", action:"toBase" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"survivorNear", action:"rescueNearest" } ]; renderRules(); validate(false); });
-$("presetE").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"carryingAny", action:"deliverPartial" }, { id:"batteryAbove", threshold:80, action:"rescueNearest" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"batteryBelow", threshold:30, action:"chargeSmart" } ]; renderRules(); validate(false); });
-$("presetF").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"criticalExists", action:"rescueSafe" }, { id:"survivorNear", action:"rescueSafe" } ]; renderRules(); validate(false); });
-$("presetG").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"criticalExists", action:"rescueSafe" }, { id:"urgentNear", action:"rescueUrgent" }, { id:"survivorNear", action:"rescueNearest" } ]; renderRules(); validate(false); });
+$("presetA").addEventListener("click", ()=>{ rules = [ { id:"criticalNear", threshold:3, action:"rescueUrgent" }, { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"full", action:"toBase" } ]; renderRules(); validate(false); });
+$("presetB").addEventListener("click", ()=>{ rules = [ { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"full", action:"toBase" }, { id:"criticalNear", threshold:3, action:"rescueUrgent" } ]; renderRules(); validate(false); });
+$("presetC").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"criticalExists", action:"rescueUrgent" }, { id:"survivorNear", threshold:3, action:"rescueNearest" }, { id:"batteryBelow", threshold:20, action:"toCharger" } ]; renderRules(); validate(false); });
+$("presetD").addEventListener("click", ()=>{ rules = [ { id:"batteryBelow", threshold:50, action:"toCharger" }, { id:"lowForReturn", threshold:4, action:"toCharger" }, { id:"full", action:"toBase" }, { id:"criticalNear", threshold:3, action:"rescueUrgent" }, { id:"survivorNear", threshold:3, action:"rescueNearest" } ]; renderRules(); validate(false); });
+$("presetE").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"carryingAny", action:"deliverPartial" }, { id:"batteryAbove", threshold:80, action:"rescueNearest" }, { id:"criticalNear", threshold:3, action:"rescueUrgent" }, { id:"batteryBelow", threshold:30, action:"chargeSmart" } ]; renderRules(); validate(false); });
+$("presetF").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"criticalExists", action:"rescueSafe" }, { id:"survivorNear", threshold:3, action:"rescueSafe" } ]; renderRules(); validate(false); });
+$("presetG").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"criticalNear", threshold:3, action:"rescueUrgent" }, { id:"criticalExists", action:"rescueSafe" }, { id:"urgentNear", threshold:3, action:"rescueUrgent" }, { id:"survivorNear", threshold:3, action:"rescueNearest" } ]; renderRules(); validate(false); });
 $("saveStrat").addEventListener("click", ()=>{
   const name = $("stratName").value.trim() || ("استراتژی " + faNum(savedStrategies.length+1));
+  normalizeRules(rules);
   savedStrategies.push({ name, rules: JSON.parse(JSON.stringify(rules)) });
   persistSaved();
   $("stratName").value = ""; renderSaved();
@@ -946,7 +1020,7 @@ function renderSaved(){
     div.innerHTML = '<span class="nm"></span><span class="cnt">' + faNum(s.rules.length) + ' قانون</span><span class="sp"></span>' +
       '<button class="btn small" type="button">بارگذاری</button><button class="icon-btn del" type="button" aria-label="حذف استراتژی ذخیره‌شده">✕</button>';
     div.querySelector(".nm").textContent = s.name;
-    div.querySelector(".btn").addEventListener("click", ()=>{ rules = JSON.parse(JSON.stringify(s.rules)); renderRules(); validate(false); });
+    div.querySelector(".btn").addEventListener("click", ()=>{ rules = normalizeRules(JSON.parse(JSON.stringify(s.rules))); renderRules(); validate(false); });
     div.querySelector(".del").addEventListener("click", ()=>{ savedStrategies.splice(i,1); persistSaved(); renderSaved(); });
     box.appendChild(div);
   });
@@ -966,7 +1040,21 @@ $("downloadBtn").addEventListener("click", ()=>{
 
 /* ================= Q-Learning ================= */
 const QACT = ["rescueNearest","rescueUrgent","toBase","toCharger","search"];
-let Q = {}, qTrained = false, qEpisodes = 0, trainCurve = [];
+let Q = {}, qTrained = false, qEpisodes = 0, trainCurve = [], qTraining = false;
+/* بهترین نقطهٔ ذخیره‌شده (checkpoint): در طول آموزش، جدول فعلی هر ۵۰ مأموریت روی یک مجموعهٔ
+   اعتبارسنجی ثابت (۱۰ نقشه، بذرهای ۹۰۰۰ تا ۹۰۰۹) به‌صورت حریصانه ارزیابی می‌شود و کپی عمیق
+   بهترین جدول نگه داشته می‌شود تا اگر آموزش در نقطهٔ بدی تمام شد، بهترین نسخه برگردد. */
+let bestQ = null, bestValScore = -Infinity, bestValAt = 0, bestValCapacity = null;
+function evalQValidation(capacity){
+  let total = 0;
+  for(let i=0;i<10;i++){ const r = runEpisode(st => QACT[qChoose(st, 0)], 9000 + i, capacity, false, 0); total += r.score; }
+  return total / 10;
+}
+function checkpointQ(capacity){
+  const s = evalQValidation(capacity);
+  if(s > bestValScore){ bestValScore = s; bestQ = JSON.parse(JSON.stringify(Q)); bestValAt = qEpisodes; bestValCapacity = capacity; }
+  return s;
+}
 /* نرخ کاوش (ε)، نرخ یادگیری (α) و ضریب تنزیل (γ) از PARAMS خوانده می‌شوند تا پنل ادمین رویشان اثر بگذارد */
 function qStateKey(obs, st){
   const b = obs.battery < 30 ? 0 : obs.battery < 60 ? 1 : 2;
@@ -1002,7 +1090,12 @@ function runEpisode(agentFn, seed, capacity, train, epsilon){
 }
 function trainQL(episodes, capacity, done){
   let ep = 0, windowReward = 0;
-  $("trainBtn").disabled = true; $("finetuneBtn").disabled = true;
+  qTraining = true;
+  $("trainBtn").disabled = true; $("finetuneBtn").disabled = true; $("resetTrainBtn").disabled = true;
+  // اگر ظرفیت عوض شده باشد، امتیازهای اعتبارسنجی قبلی قابل مقایسه نیستند؛ بهترین نقطه از نو سنجیده می‌شود
+  if(bestValCapacity !== null && bestValCapacity !== capacity){ bestQ = null; bestValScore = -Infinity; bestValAt = 0; }
+  bestValCapacity = capacity;
+  function bestTxt(){ return bestValScore === -Infinity ? "" : " — بهترین امتیاز اعتبارسنجی تا اینجا: " + faNum(bestValScore.toFixed(1)); }
   function chunk(){
     const t0 = Date.now();
     while(ep < episodes && Date.now() - t0 < 40){
@@ -1010,19 +1103,43 @@ function trainQL(episodes, capacity, done){
       const r = runEpisode(null, 31000 + qEpisodes*3 + Math.floor(Math.random()*2), capacity, true, eps);
       qEpisodes++; ep++; windowReward += r.reward;
       if(qEpisodes % 25 === 0){ trainCurve.push(windowReward/25); windowReward = 0; if(trainCurve.length>40) trainCurve.shift(); drawCurve(); }
+      if(ep % 50 === 0) checkpointQ(capacity); // هر ۵۰ مأموریت: ارزیابی روی ۱۰ نقشهٔ ثابت و ذخیرهٔ بهترین جدول
       $("trainProg").style.width = Math.round(ep/episodes*100) + "%";
-      $("trainInfo").textContent = "در حال آموزش… مأموریت تمرینی " + faNum(qEpisodes) + " — نرخ کاوش (ε): " + faNum(Math.round(Math.max(0.03, PARAMS.epsilon*Math.pow(0.995,qEpisodes))*100)) + "٪";
+      $("trainInfo").textContent = "در حال آموزش… مأموریت تمرینی " + faNum(qEpisodes) + " — نرخ کاوش (ε): " + faNum(Math.round(Math.max(0.03, PARAMS.epsilon*Math.pow(0.995,qEpisodes))*100)) + "٪" + bestTxt();
     }
     if(ep < episodes) setTimeout(chunk, 0);
     else {
-      qTrained = true;
-      $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول Q. حالا مقایسه را اجرا کن.";
-      $("trainBtn").disabled = false; $("finetuneBtn").disabled = false; $("evalBtn").disabled = false;
+      // ارزیابی نهایی: اگر جدول نهایی از بهترین نقطهٔ ذخیره‌شده بدتر است، بهترین نسخه برمی‌گردد
+      const finalScore = evalQValidation(capacity);
+      let restored = false;
+      if(bestQ && finalScore < bestValScore){
+        Q = JSON.parse(JSON.stringify(bestQ));
+        restored = true;
+      } else if(finalScore >= bestValScore){
+        bestValScore = finalScore; bestQ = JSON.parse(JSON.stringify(Q)); bestValAt = qEpisodes; bestValCapacity = capacity;
+      }
+      qTrained = true; qTraining = false;
+      $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول Q." +
+        (restored
+          ? " جدول نهایی روی نقشه‌های اعتبارسنجی امتیاز " + faNum(finalScore.toFixed(1)) + " گرفت، اما بهترین نسخهٔ دیده‌شده در طول آموزش امتیاز " + faNum(bestValScore.toFixed(1)) + " داشت (مأموریت تمرینی " + faNum(bestValAt) + ")؛ همان بهترین نسخه حفظ شد تا آموزشِ تمام‌شده در یک نقطهٔ بد، عامل را خراب نکند."
+          : " بهترین امتیاز اعتبارسنجی: " + faNum(bestValScore.toFixed(1)) + " — جدول نهایی همان بهترین نسخه است.") +
+        " حالا مقایسه را اجرا کن.";
+      $("trainBtn").disabled = false; $("finetuneBtn").disabled = false; $("evalBtn").disabled = false; $("resetTrainBtn").disabled = false;
       if(done) done();
     }
   }
   chunk();
 }
+/* شروع دوباره از صفر: جدول Q، شمار مأموریت‌ها، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده همه پاک می‌شوند */
+$("resetTrainBtn").addEventListener("click", ()=>{
+  if(qTraining) return;
+  Q = {}; qTrained = false; qEpisodes = 0; trainCurve = [];
+  bestQ = null; bestValScore = -Infinity; bestValAt = 0; bestValCapacity = null;
+  drawCurve();
+  $("trainProg").style.width = "0%";
+  $("trainInfo").textContent = "همه‌چیز از صفر شروع شد: جدول Q، شمار مأموریت‌های تمرینی، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده پاک شدند. حالا دکمهٔ آموزش را بزن تا عامل از اول یاد بگیرد.";
+  $("evalBtn").disabled = true; $("finetuneBtn").disabled = true;
+});
 function drawCurve(){
   const svg = $("trainChart"); if(trainCurve.length < 2){ svg.innerHTML = ""; return; }
   const min = Math.min.apply(null, trainCurve), max = Math.max.apply(null, trainCurve), rng = (max-min) || 1;
@@ -1068,6 +1185,123 @@ function evaluate(afterFinetune){
     : "نتیجه را ببین و از خودت بپرس: قانون‌های من کجا از ربات یادگیرنده بهترند و کجا بدتر؟ بعد قانون‌ها را اصلاح کن و مقایسه را تکرار کن.";
 }
 $("evalBtn").addEventListener("click", ()=> evaluate(false));
+
+/* ================= بهینه‌سازی عددهای استراتژی =================
+   جست‌وجوی مختصاتی (coordinate search): برای هر قانون کمی، مقدارهای نامزد یکی‌یکی
+   روی همان نقشه‌های مقایسه (بذرهای ۵۰۰۰ به بعد، به تعداد PARAMS.evalMaps) اجرا می‌شوند،
+   بهترین مقدار آن قانون نگه داشته می‌شود و بعد سراغ قانون بعدی می‌رویم.
+   ترتیب قانون‌ها و اقدام‌ها هرگز عوض نمی‌شود؛ فقط عددها. */
+function candidateValues(rule){
+  const def = condDef(rule.id);
+  if(!def || !def.param) return [];
+  let vals;
+  switch(def.param.kind){
+    case "battery": vals = [10,20,30,40,50,60,70,80]; break;
+    case "distance": vals = [1,2,3,4,5,6]; break;
+    case "distanceFar": vals = [3,4,5,6,7,8]; break;
+    case "time": vals = [10,20,30,40,60,80]; break;
+    case "margin": vals = [0,2,4,6,8,12]; break;
+    default: vals = [def.param.def];
+  }
+  const cur = ruleNum(rule);
+  if(!vals.includes(cur)) vals.push(cur);
+  return vals.slice().sort((a,b)=>a-b);
+}
+function evalRulesAvg(rulesCopy, capacity){
+  let total = 0, rescued = 0;
+  const N = PARAMS.evalMaps;
+  for(let i=0;i<N;i++){
+    const r = runEpisode(st => humanDecision(rulesCopy, st).actionId, 5000 + i, capacity, false, 0);
+    total += r.score; rescued += r.rescued;
+  }
+  return { score: total / N, rescued: rescued / N };
+}
+let optimizing = false, lastOptimization = null;
+function startOptimize(){
+  if(optimizing) return;
+  const quantIdx = [];
+  rules.forEach((r,i)=>{ if(condDef(r.id) && condDef(r.id).param) quantIdx.push(i); });
+  if(!rules.length){
+    $("optStatus").textContent = "اول در سازندهٔ استراتژی دست‌کم یک قانون بساز.";
+    $("optOut").innerHTML = "";
+    return;
+  }
+  if(!quantIdx.length){
+    $("optStatus").textContent = "استراتژی فعلی هیچ عددی ندارد که بهینه شود.";
+    $("optOut").innerHTML = '<div class="opt-row"><span>قانون‌های فعلی‌ات (مثل «ظرفیت پر است» یا «مصدوم بحرانی در نقشه هست») مؤلفهٔ کمی ندارند. یک قانون با عدد اضافه کن؛ مثلاً «باتری کمتر از…» یا «نزدیک‌ترین مصدوم در نزدیکی است».</span></div>';
+    return;
+  }
+  optimizing = true;
+  lastOptimization = null;
+  $("optimizeBtn").disabled = true;
+  $("optOut").innerHTML = "";
+  $("optProgWrap").hidden = false;
+  $("optProg").style.width = "0%";
+  const cap = Number($("capSel").value) || PARAMS.capacity;
+  const startRules = normalizeRules(JSON.parse(JSON.stringify(rules)));
+  const work = JSON.parse(JSON.stringify(startRules));
+  // صف کارها: اول امتیاز پایه، بعد برای هر قانون کمی همهٔ مقدارهای نامزدش
+  const jobs = [{ type:"baseline" }];
+  quantIdx.forEach(idx => candidateValues(startRules[idx]).forEach(v => jobs.push({ type:"try", ruleIdx: idx, value: v })));
+  const totalJobs = jobs.length;
+  let doneJobs = 0, baselineScore = null, currentBestScore = null;
+  function finish(){
+    optimizing = false;
+    $("optimizeBtn").disabled = false;
+    $("optProg").style.width = "100%";
+    const best = evalRulesAvg(work, cap);
+    lastOptimization = { rules: JSON.parse(JSON.stringify(work)), score: best.score, baselineScore: baselineScore, capacity: cap };
+    $("optStatus").textContent = "بهینه‌سازی تمام شد — روی همان " + faNum(PARAMS.evalMaps) + " نقشهٔ مقایسه و با ظرفیت حمل " + faNum(cap) + " نفر.";
+    let html = '<div class="opt-row"><span><b>امتیاز عددهای فعلی:</b> ' + faNum(baselineScore.toFixed(1)) + '</span><span><b>امتیاز بهترین ترکیب پیدا‌شده:</b> ' + faNum(best.score.toFixed(1)) + '</span>' +
+      (best.score > baselineScore + 0.001 ? '<span class="chg">بهبود: +' + faNum((best.score - baselineScore).toFixed(1)) + '</span>' : '<span class="same">عددهای فعلی‌ات از قبل بهترین ترکیب پیدا‌شده‌اند.</span>') + '</div>';
+    work.forEach((r,i)=>{
+      if(!(condDef(r.id) && condDef(r.id).param)) return;
+      const from = ruleNum(startRules[i]), to = ruleNum(r);
+      html += '<div class="opt-row"><span><b>قانون ' + faNum(i+1) + ':</b> ' + condLabel(startRules[i]) + '</span>' +
+        (from !== to ? '<span class="chg">' + faNum(from) + ' ← ' + faNum(to) + '</span>' : '<span class="same">بدون تغییر: ' + faNum(to) + '</span>') + '</div>';
+    });
+    if(best.score > baselineScore + 0.001){
+      html += '<div class="row" style="margin-top:4px"><button class="btn accent" id="applyOptBtn" type="button">اعمال بهترین عددها روی قانون‌های فعلی</button></div>';
+    }
+    $("optOut").innerHTML = html;
+    const applyBtn = $("applyOptBtn");
+    if(applyBtn) applyBtn.addEventListener("click", applyOptimization);
+  }
+  function applyOptimization(){
+    if(!lastOptimization) return;
+    // فقط عددها روی قانون‌های فعلی اعمال می‌شوند؛ ترتیب و اقدام‌ها دست نمی‌خورند
+    lastOptimization.rules.forEach((br,i)=>{
+      if(rules[i] && br.id === rules[i].id && condDef(br.id) && condDef(br.id).param) setRuleNum(rules[i], ruleNum(br));
+    });
+    renderRules(); validate(false);
+    $("optStatus").textContent = "بهترین عددها اعمال شدند (امتیاز روی نقشه‌های مقایسه: " + faNum(lastOptimization.score.toFixed(1)) + "). حالا مأموریت را اجرا کن یا دوباره مقایسه بگیر.";
+    const b = $("applyOptBtn"); if(b) b.disabled = true;
+    try { document.querySelector(".layout").scrollIntoView({ behavior:"smooth", block:"start" }); } catch(e){}
+  }
+  function step(){
+    if(!jobs.length){ finish(); return; }
+    const job = jobs.shift();
+    if(job.type === "baseline"){
+      const r = evalRulesAvg(work, cap);
+      baselineScore = r.score; currentBestScore = r.score;
+      $("optStatus").textContent = "امتیاز عددهای فعلی: " + faNum(baselineScore.toFixed(1)) + " — حالا مقدارهای دیگر را امتحان می‌کنم…";
+    } else {
+      const trial = JSON.parse(JSON.stringify(work));
+      setRuleNum(trial[job.ruleIdx], job.value);
+      const r = evalRulesAvg(trial, cap);
+      if(r.score > currentBestScore){
+        currentBestScore = r.score;
+        setRuleNum(work[job.ruleIdx], job.value);
+      }
+      $("optStatus").textContent = "در حال بهینه‌سازی… قانون " + faNum(job.ruleIdx+1) + " (" + condLabel(trial[job.ruleIdx]) + ") → امتیاز " + faNum(r.score.toFixed(1));
+    }
+    doneJobs++;
+    $("optProg").style.width = Math.round(doneJobs/totalJobs*100) + "%";
+    setTimeout(step, 0);
+  }
+  step();
+}
+$("optimizeBtn").addEventListener("click", startOptimize);
 
 /* ================= تغییر ناگهانی محیط ================= */
 const SHOCK_LABELS = { capacity:"ظرفیت حمل", maxTime:"زمان مأموریت", dangerCost:"هزینهٔ خطر", dangerCells:"خانه‌های خطرناک", obstacles:"موانع", chargeRate:"سرعت شارژ", startBattery:"باتری شروع" };
