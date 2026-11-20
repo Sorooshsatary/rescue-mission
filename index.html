@@ -390,33 +390,9 @@
     <div id="evalOut"></div>
   </section>
 
-  <!-- ===== Local download / run ===== -->
-  <section class="panel compare" aria-label="دانلود و اجرای لوکال">
-    <h2>دانلود کد کامل و اجرای لوکال</h2>
-    <p class="sub">کل این بازی — صفحه، سبک‌ها و همهٔ منطق بازی و یادگیری تقویتی — در <b>یک فایل تکی و مستقل</b> است؛ نه سرور می‌خواهد، نه دیتابیس، نه نصب هیچ برنامه‌ای. همین فایل را دانلود کن و روی کامپیوتر خودت اجرایش کن.</p>
-    <div class="local-grid">
-      <div>
-        <h3>روش ۱ — ساده‌ترین راه</h3>
-        <ol>
-          <li>دکمهٔ زیر را بزن و فایل <bdi>rescue-mission.html</bdi> را دانلود کن.</li>
-          <li>روی فایل دانلودشده دوبار کلیک کن؛ در مرورگرت (کروم، فایرفاکس، اج…) باز می‌شود و بازی کامل کار می‌کند.</li>
-        </ol>
-        <div class="row" style="margin-top:12px">
-          <button class="btn primary" id="downloadBtn" type="button">⬇ دانلود فایل کامل بازی</button>
-        </div>
-        <p class="status-line" id="downloadNote"></p>
-      </div>
-      <div>
-        <h3>روش ۲ — با سرور لوکال</h3>
-        <p>اگر ترجیح می‌دهی با یک سرور محلی اجرایش کنی، فایل را در یک پوشه بگذار و یکی از این دستورها را در همان پوشه اجرا کن:</p>
-        <p class="code-box">python3 -m http.server 8000</p>
-        <p>یا اگر پایتون نداری:</p>
-        <p class="code-box">npx serve .</p>
-        <p>بعد در مرورگر برو به <bdi>http://localhost:8000/rescue-mission.html</bdi></p>
-        <p class="note">تنها وابستگی اینترنتی فایل، فونت وزیرمتن از گوگل‌فونت است؛ آفلاین هم بازی کامل کار می‌کند و فقط فونت جایگزین سیستم نمایش داده می‌شود. کد را با هر ویرایشگر متنی می‌توانی باز کنی و تغییر بدهی — بخش‌های بازی با کامنت‌های فارسی از هم جدا شده‌اند.</p>
-      </div>
-    </div>
-  </section>
+  <div style="margin-top:20px; text-align:center">
+    <button class="btn primary" id="downloadBtn" type="button" style="font-size:16px; padding:12px 26px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg> دانلود فایل کامل بازی</button>
+  </div>
 
   <!-- ===== پنل ادمین (ورود با رمز، پارامترهای محلی) ===== -->
   <div class="admin-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="پنل ادمین">
@@ -1103,7 +1079,6 @@ $("downloadBtn").addEventListener("click", ()=>{
   a.href = url; a.download = "rescue-mission.html";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=> URL.revokeObjectURL(url), 4000);
-  $("downloadNote").innerHTML = "<b>فایل دانلود شد.</b> کافی است روی آن دوبار کلیک کنی تا در مرورگر باز شود — بدون سرور و بدون نصب چیزی.";
 });
 
 /* ================= Q-Learning ================= */
