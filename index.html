@@ -738,11 +738,22 @@ function stepEnv(st, actionId){
       if(s){ if(s.x===st.robot.x && s.y===st.robot.y) wantPickup = s; else target = s; }
     } else target = st.base;
   }
-  else if(actionId==="toBase") target = st.base;
+  else if(actionId==="toBase"){
+    target = st.base;
+    if(!st.carrying.length && obs.alive.length) info.reward -= 0.25;
+  }
   else if(actionId==="toCharger"){
     if(onCharger && st.battery < 100){
+      const lowBefore = st.battery < 60;
       st.battery = Math.min(100, st.battery + PARAMS.chargeRate); st.time++;
-      info.event = "در حال شارژ… +" + faNum(PARAMS.chargeRate) + "٪ باتری"; info.reward += 0.1;
+      info.event = "در حال شارژ… +" + faNum(PARAMS.chargeRate) + "٪ باتری";
+      if(lowBefore) info.reward += 0.05;
+      finishStep(st, info); return info;
+    }
+    if(onCharger && st.battery >= 100){
+      st.time++;
+      info.event = "باتری پر است — توقف روی شارژر";
+      info.reward -= 0.25;
       finishStep(st, info); return info;
     }
     let best=null, bd=Infinity;
@@ -1083,33 +1094,41 @@ $("downloadBtn").addEventListener("click", ()=>{
   setTimeout(()=> URL.revokeObjectURL(url), 4000);
 });
 
-/* ================= Q-Learning ================= */
+/* ================= Q-Learning (Watkins's Q(λ) + Coarse Backoff) ================= */
 const QACT = ["rescueNearest","rescueUrgent","rescueSafe","toBase","toCharger","search"];
-let Q = {}, qTrained = false, qEpisodes = 0, trainCurve = [], qTraining = false;
-/* شمار دفعات دیده‌شدن هر وضعیت در طول آموزش؛ برای بخش «استراتژی مدل» لازم است */
+const Q_LAMBDA = 0.8;
+let Q = {}, QCoarse = {}, qTrained = false, qEpisodes = 0, trainCurve = [], qTraining = false;
 let QVisits = {};
-/* بهترین نقطهٔ ذخیره‌شده (checkpoint): در طول آموزش، جدول فعلی هر ۵۰ مأموریت روی یک مجموعهٔ
-   اعتبارسنجی ثابت (۱۰ نقشه، بذرهای ۹۰۰۰ تا ۹۰۰۹) به‌صورت حریصانه ارزیابی می‌شود و کپی عمیق
-   بهترین جدول نگه داشته می‌شود تا اگر آموزش در نقطهٔ بدی تمام شد، بهترین نسخه برگردد. */
-let bestQ = null, bestValScore = -Infinity, bestValAt = 0, bestValCapacity = null, bestVisits = null;
+let bestQ = null, bestQCoarse = null, bestValScore = -Infinity, bestValAt = 0, bestValEnvSig = null, bestVisits = null;
+
+function envSignature(capacity){
+  return [
+    capacity, PARAMS.maxTime, PARAMS.startBattery, PARAMS.obstacles,
+    PARAMS.dangerCells, PARAMS.dangerCost, PARAMS.chargeRate,
+    PARAMS.survivorsCritical, PARAMS.survivorsUrgent, PARAMS.survivorsNormal,
+    PARAMS.pointsCritical, PARAMS.pointsUrgent, PARAMS.pointsNormal
+  ].join("|");
+}
 function evalQValidation(capacity){
   let total = 0;
-  for(let i=0;i<10;i++){ const r = runEpisode(st => QACT[qChoose(st, 0)], 9000 + i, capacity, false, 0); total += r.score; }
+  for(let i=0;i<10;i++){
+    const r = runEpisode(st => QACT[qChoose(st, 0)], 9000 + i, capacity, false, 0);
+    total += r.score;
+  }
   return total / 10;
 }
 function checkpointQ(capacity){
   const s = evalQValidation(capacity);
-  if(s > bestValScore){ bestValScore = s; bestQ = JSON.parse(JSON.stringify(Q)); bestVisits = { ...QVisits }; bestValAt = qEpisodes; bestValCapacity = capacity; }
+  if(s > bestValScore){
+    bestValScore = s;
+    bestQ = JSON.parse(JSON.stringify(Q));
+    bestQCoarse = JSON.parse(JSON.stringify(QCoarse));
+    bestVisits = { ...QVisits };
+    bestValAt = qEpisodes;
+    bestValEnvSig = envSignature(capacity);
+  }
   return s;
 }
-/* نرخ کاوش (ε)، نرخ یادگیری (α) و ضریب تنزیل (γ) از PARAMS خوانده می‌شوند تا تنظیمات بازی رویشان اثر بگذارد */
-/* وضعیت Q عمداً ریز ساخته می‌شود تا عامل آستانه‌ها را خودش در آموزش یاد بگیرد،
-   نه اینکه عددها از قبل ثابت باشند:
-   - باتری در ۵ سطح: ۰–۲۰، ۲۰–۴۰، ۴۰–۶۰، ۶۰–۸۰، ۸۰–۱۰۰
-   - فاصلهٔ نزدیک‌ترین مصدوم، بحرانی‌ترین مصدوم و شارژر، هرکدام در ۳ سطح: ۰–۲، ۳–۵، ۶ یا بیشتر (یا هدفی نمانده)
-   - زمان باقی‌مانده در ۳ سطح: حداکثر ۲۵ قدم، ۲۶ تا ۷۵ قدم، بیش از ۷۵ قدم
-   - وضعیت ظرفیت حمل در ۳ سطح: خالی، نیمه‌پر، پر
-   مجموع: ۵×۳×۳×۳×۳×۳ = ۱۲۱۵ وضعیت ممکن و ۶ اقدام برای هر وضعیت. */
 function batteryBin(b){
   const x = Math.max(0, Math.min(100, b));
   return Math.min(4, Math.floor(x / 20));
@@ -1129,27 +1148,96 @@ function qStateKey(obs, st){
   const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
   return [batteryBin(obs.battery), carry, distBin(obs.nearestD), distBin(obs.crit ? obs.critD : Infinity), timeBin(obs.timeLeft), distBin(obs.chargerD)].join("|");
 }
-function qRow(key){ if(!Q[key]) Q[key] = new Array(QACT.length).fill(0); return Q[key]; }
-function qChoose(st, epsilon){
-  const obs = observe(st); const row = qRow(qStateKey(obs, st));
-  if(Math.random() < epsilon) return Math.floor(Math.random()*QACT.length);
-  let bi = 0; for(let i=1;i<row.length;i++) if(row[i] > row[bi]) bi = i;
-  return bi;
+function qCoarseKey(obs){
+  const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
+  const critZone = !obs.crit ? 2 : obs.critD <= 3 ? 0 : 1;
+  return [batteryBin(obs.battery), carry, critZone].join("|");
+}
+function qRow(table, k){
+  if(!table[k]) table[k] = new Array(QACT.length).fill(0);
+  return table[k];
+}
+function qEffectiveValues(obs, st){
+  const fk = qStateKey(obs, st);
+  const ck = qCoarseKey(obs);
+  const visits = QVisits[fk] || 0;
+  const fRow = Q[fk];
+  const cRow = QCoarse[ck];
+  if(visits >= 5 && fRow) return fRow;
+  if(!fRow && !cRow) return new Array(QACT.length).fill(0);
+  if(!fRow) return cRow;
+  if(!cRow) return fRow;
+  const w = Math.min(1, visits / 5);
+  const out = new Array(QACT.length);
+  for(let i=0;i<QACT.length;i++) out[i] = w * fRow[i] + (1 - w) * cRow[i];
+  return out;
+}
+function argMaxRandomTie(arr){
+  let maxV = -Infinity;
+  for(let i=0;i<arr.length;i++) if(arr[i] > maxV) maxV = arr[i];
+  const best = [];
+  for(let i=0;i<arr.length;i++) if(arr[i] >= maxV - 1e-9) best.push(i);
+  return best[Math.floor(Math.random() * best.length)];
+}
+function qChoose(st, epsilon, obsPre){
+  if(Math.random() < epsilon) return Math.floor(Math.random() * QACT.length);
+  const obs = obsPre || observe(st);
+  return argMaxRandomTie(qEffectiveValues(obs, st));
 }
 function runEpisode(agentFn, seed, capacity, train, epsilon){
   const st = genMap(seed, capacity);
   let totalReward = 0, guard = 0;
+  let tracesF = new Map();
+  let tracesC = new Map();
   while(!st.over && guard++ < 400){
     if(train){
-      const obsBefore = observe(st); const keyBefore = qStateKey(obsBefore, st);
-      QVisits[keyBefore] = (QVisits[keyBefore] || 0) + 1;
-      const ai = qChoose(st, epsilon);
+      const obsBefore = observe(st);
+      const fkBefore = qStateKey(obsBefore, st);
+      const ckBefore = qCoarseKey(obsBefore);
+      QVisits[fkBefore] = (QVisits[fkBefore] || 0) + 1;
+
+      const greedyAi = argMaxRandomTie(qEffectiveValues(obsBefore, st));
+      const explored = Math.random() < epsilon;
+      const ai = explored ? Math.floor(Math.random() * QACT.length) : greedyAi;
+
+      if(explored && ai !== greedyAi){
+        tracesF.clear();
+        tracesC.clear();
+      }
+
       const info = stepEnv(st, QACT[ai]);
       totalReward += info.reward;
-      const obsAfter = observe(st); const rowAfter = qRow(qStateKey(obsAfter, st));
-      const maxNext = st.over ? 0 : Math.max.apply(null, rowAfter);
-      const row = qRow(keyBefore);
-      row[ai] += PARAMS.alpha * (info.reward + PARAMS.gamma * maxNext - row[ai]);
+
+      const obsAfter = observe(st);
+      const fkAfter = qStateKey(obsAfter, st);
+      const ckAfter = qCoarseKey(obsAfter);
+      const nextVals = st.over ? null : qEffectiveValues(obsAfter, st);
+      const maxNext = st.over ? 0 : Math.max.apply(null, nextVals);
+
+      const fRowBefore = qRow(Q, fkBefore);
+      const cRowBefore = qRow(QCoarse, ckBefore);
+      const deltaF = info.reward + PARAMS.gamma * maxNext - fRowBefore[ai];
+      const maxNextC = st.over ? 0 : Math.max.apply(null, qRow(QCoarse, ckAfter));
+      const deltaC = info.reward + PARAMS.gamma * maxNextC - cRowBefore[ai];
+
+      const tkF = fkBefore + "#" + ai;
+      const tkC = ckBefore + "#" + ai;
+      tracesF.set(tkF, { k: fkBefore, a: ai, e: 1 });
+      tracesC.set(tkC, { k: ckBefore, a: ai, e: 1 });
+
+      const decay = PARAMS.gamma * Q_LAMBDA;
+      for(const [id, tr] of tracesF){
+        const r = qRow(Q, tr.k);
+        r[tr.a] += PARAMS.alpha * deltaF * tr.e;
+        tr.e *= decay;
+        if(tr.e < 0.01) tracesF.delete(id);
+      }
+      for(const [id, tr] of tracesC){
+        const r = qRow(QCoarse, tr.k);
+        r[tr.a] += (PARAMS.alpha * 0.5) * deltaC * tr.e;
+        tr.e *= decay;
+        if(tr.e < 0.01) tracesC.delete(id);
+      }
     } else {
       const info = stepEnv(st, agentFn(st));
       totalReward += info.reward;
@@ -1161,38 +1249,49 @@ function trainQL(episodes, capacity, done){
   let ep = 0, windowReward = 0;
   qTraining = true;
   $("trainBtn").disabled = true; $("finetuneBtn").disabled = true; $("resetTrainBtn").disabled = true;
-  // اگر ظرفیت عوض شده باشد، امتیازهای اعتبارسنجی قبلی قابل مقایسه نیستند؛ بهترین نقطه از نو سنجیده می‌شود
-  if(bestValCapacity !== null && bestValCapacity !== capacity){ bestQ = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0; }
-  bestValCapacity = capacity;
+  const sig = envSignature(capacity);
+  const envChanged = bestValEnvSig !== null && bestValEnvSig !== sig;
+  if(envChanged){
+    bestQ = null; bestQCoarse = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0;
+  }
+  bestValEnvSig = sig;
+  const epsStart = envChanged ? Math.max(0.25, PARAMS.epsilon) : (qEpisodes === 0 ? PARAMS.epsilon : Math.max(0.18, PARAMS.epsilon * 0.6));
+  const epsMin = 0.03;
   function bestTxt(){ return bestValScore === -Infinity ? "" : " — بهترین امتیاز اعتبارسنجی تا اینجا: " + faNum(bestValScore.toFixed(1)); }
   function chunk(){
     const t0 = Date.now();
     while(ep < episodes && Date.now() - t0 < 40){
-      const eps = Math.max(0.03, PARAMS.epsilon * Math.pow(0.995, qEpisodes));
+      const progress = ep / Math.max(1, episodes - 1);
+      const eps = Math.max(epsMin, epsStart * Math.pow(epsMin / Math.max(epsMin, epsStart), progress));
       const r = runEpisode(null, 31000 + qEpisodes*3 + Math.floor(Math.random()*2), capacity, true, eps);
       qEpisodes++; ep++; windowReward += r.reward;
       if(qEpisodes % 25 === 0){ trainCurve.push(windowReward/25); windowReward = 0; if(trainCurve.length>40) trainCurve.shift(); drawCurve(); }
-      if(ep % 50 === 0) checkpointQ(capacity); // هر ۵۰ مأموریت: ارزیابی روی ۱۰ نقشهٔ ثابت و ذخیرهٔ بهترین جدول
+      if(ep % 50 === 0) checkpointQ(capacity);
       $("trainProg").style.width = Math.round(ep/episodes*100) + "%";
-      $("trainInfo").textContent = "در حال آموزش… مأموریت تمرینی " + faNum(qEpisodes) + " — نرخ کاوش (ε): " + faNum(Math.round(Math.max(0.03, PARAMS.epsilon*Math.pow(0.995,qEpisodes))*100)) + "٪" + bestTxt();
+      $("trainInfo").textContent = "در حال آموزش… مأموریت تمرینی " + faNum(qEpisodes) + " — نرخ کاوش (ε): " + faNum(Math.round(eps*100)) + "٪" + bestTxt();
     }
     if(ep < episodes) setTimeout(chunk, 0);
     else {
-      // ارزیابی نهایی: اگر جدول نهایی از بهترین نقطهٔ ذخیره‌شده بدتر است، بهترین نسخه برمی‌گردد
       const finalScore = evalQValidation(capacity);
       let restored = false;
       if(bestQ && finalScore < bestValScore){
         Q = JSON.parse(JSON.stringify(bestQ));
+        if(bestQCoarse) QCoarse = JSON.parse(JSON.stringify(bestQCoarse));
         if(bestVisits) QVisits = { ...bestVisits };
         restored = true;
       } else if(finalScore >= bestValScore){
-        bestValScore = finalScore; bestQ = JSON.parse(JSON.stringify(Q)); bestVisits = { ...QVisits }; bestValAt = qEpisodes; bestValCapacity = capacity;
+        bestValScore = finalScore;
+        bestQ = JSON.parse(JSON.stringify(Q));
+        bestQCoarse = JSON.parse(JSON.stringify(QCoarse));
+        bestVisits = { ...QVisits };
+        bestValAt = qEpisodes;
+        bestValEnvSig = sig;
       }
       qTrained = true; qTraining = false;
       renderModelStrategy();
       $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول یادگیری." +
         (restored
-          ? " جدول نهایی روی نقشه‌های اعتبارسنجی امتیاز " + faNum(finalScore.toFixed(1)) + " گرفت، اما بهترین نسخهٔ دیده‌شده در طول آموزش امتیاز " + faNum(bestValScore.toFixed(1)) + " داشت (مأموریت تمرینی " + faNum(bestValAt) + ")؛ همان بهترین نسخه حفظ شد تا آموزشِ تمام‌شده در یک نقطهٔ بد، عامل را خراب نکند."
+          ? " جدول نهایی روی نقشه‌های اعتبارسنجی امتیاز " + faNum(finalScore.toFixed(1)) + " گرفت، اما بهترین نسخهٔ دیده‌شده در طول آموزش امتیاز " + faNum(bestValScore.toFixed(1)) + " داشت (مأموریت تمرینی " + faNum(bestValAt) + ")؛ همان بهترین نسخه حفظ شد."
           : " بهترین امتیاز اعتبارسنجی: " + faNum(bestValScore.toFixed(1)) + " — جدول نهایی همان بهترین نسخه است.") +
         " حالا مقایسه را اجرا کن.";
       $("trainBtn").disabled = false; $("finetuneBtn").disabled = false; $("evalBtn").disabled = false; $("resetTrainBtn").disabled = false;
@@ -1201,17 +1300,17 @@ function trainQL(episodes, capacity, done){
   }
   chunk();
 }
-/* شروع دوباره از صفر: جدول Q، شمار مأموریت‌ها، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده همه پاک می‌شوند */
 $("resetTrainBtn").addEventListener("click", ()=>{
   if(qTraining) return;
-  Q = {}; QVisits = {}; qTrained = false; qEpisodes = 0; trainCurve = [];
-  bestQ = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0; bestValCapacity = null;
+  Q = {}; QCoarse = {}; QVisits = {}; qTrained = false; qEpisodes = 0; trainCurve = [];
+  bestQ = null; bestQCoarse = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0; bestValEnvSig = null;
   drawCurve();
   renderModelStrategy();
   $("trainProg").style.width = "0%";
   $("trainInfo").textContent = "همه‌چیز از صفر شروع شد: جدول یادگیری، شمار مأموریت‌های تمرینی، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده پاک شدند. حالا دکمهٔ آموزش را بزن تا عامل از اول یاد بگیرد.";
   $("evalBtn").disabled = true; $("finetuneBtn").disabled = true;
 });
+
 function drawCurve(){
   const svg = $("trainChart"); if(trainCurve.length < 2){ svg.innerHTML = ""; return; }
   const min = Math.min.apply(null, trainCurve), max = Math.max.apply(null, trainCurve), rng = (max-min) || 1;
