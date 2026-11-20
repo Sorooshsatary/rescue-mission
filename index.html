@@ -155,6 +155,21 @@
   .bar-fill{ height:100%; border-radius:6px; }
   #trainChart{ width:100%; height:90px; display:block; margin-top:8px; }
   .note{ font-size:13px; color:var(--muted); }
+  /* ---------- Sudden environment change ---------- */
+  .shock-zone{ margin-top:16px; border:2px dashed color-mix(in srgb, var(--red) 55%, var(--line)); background:color-mix(in srgb, var(--red) 6%, var(--panel2)); border-radius:12px; padding:14px 16px; display:flex; flex-wrap:wrap; gap:12px 16px; align-items:center; }
+  .shock-zone-text{ flex:1 1 260px; }
+  .shock-zone-text strong{ display:block; font-size:16.5px; font-weight:900; }
+  .shock-zone-text span{ color:var(--muted); font-size:13.5px; }
+  .shock-btn{ background:var(--red); border-color:var(--red); color:#fff; font-size:17px; font-weight:900; padding:14px 26px; border-radius:12px; box-shadow:0 4px 14px color-mix(in srgb, var(--red) 35%, transparent); }
+  .shock-btn:hover{ background:var(--red); border-color:var(--ink); filter:brightness(1.07); }
+  .shock-banner{ margin-top:14px; border:2px solid var(--red); background:color-mix(in srgb, var(--amber) 16%, var(--panel)); border-radius:12px; padding:16px 18px; }
+  .shock-banner[hidden]{ display:none; }
+  .shock-banner.restored{ border-color:var(--green); background:color-mix(in srgb, var(--green) 12%, var(--panel)); }
+  .shock-title{ font-size:19px; font-weight:900; line-height:1.5; margin-bottom:6px; }
+  .shock-changes{ font-size:17px; font-weight:900; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:10px 0; line-height:1.9; }
+  .shock-banner p{ margin:6px 0; font-size:14.5px; }
+  .shock-banner p b{ color:var(--red); }
+  .shock-banner.restored p b{ color:var(--green); }
   .local-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
   @media (max-width:760px){ .local-grid{ grid-template-columns:1fr; } }
   .local-grid h3{ margin:0 0 6px; font-size:15.5px; font-weight:800; }
@@ -323,6 +338,16 @@
         </div>
       </div>
     </div>
+
+    <div class="shock-zone" id="shockZone">
+      <div class="shock-zone-text">
+        <strong>آزمایش تغییر محیط</strong>
+        <span>دنیا همیشه ثابت نمی‌ماند! با این دکمه محیط ناگهان عوض می‌شود؛ قانون‌هایت دست‌نخورده می‌مانند تا خودت ببینی هنوز جواب می‌دهند یا نه.</span>
+      </div>
+      <button class="btn shock-btn" id="shockBtn" type="button">⚡ تغییر ناگهانی محیط</button>
+      <button class="btn" id="restoreEnvBtn" type="button" disabled>↩ بازگشت به محیط عادی</button>
+    </div>
+    <div class="shock-banner" id="shockBanner" hidden role="alert"></div>
 
     <div class="row" style="margin-top:16px">
       <button class="btn accent" id="evalBtn" type="button" disabled>اجرای مقایسه روی ۳۰ نقشهٔ یکسان</button>
@@ -1043,6 +1068,69 @@ function evaluate(afterFinetune){
     : "نتیجه را ببین و از خودت بپرس: قانون‌های من کجا از ربات یادگیرنده بهترند و کجا بدتر؟ بعد قانون‌ها را اصلاح کن و مقایسه را تکرار کن.";
 }
 $("evalBtn").addEventListener("click", ()=> evaluate(false));
+
+/* ================= تغییر ناگهانی محیط ================= */
+const SHOCK_LABELS = { capacity:"ظرفیت حمل", maxTime:"زمان مأموریت", dangerCost:"هزینهٔ خطر", dangerCells:"خانه‌های خطرناک", obstacles:"موانع", chargeRate:"سرعت شارژ", startBattery:"باتری شروع" };
+const SHOCK_SCENARIOS = [
+  { title:"ظرفیت حمل نصف شد!", changes:{ capacity:1 } },
+  { title:"وقت مأموریت تنگ شد!", changes:{ maxTime:110 } },
+  { title:"زمین خطرناک مرگبارتر شد!", changes:{ dangerCost:6, dangerCells:14 } },
+  { title:"مسیرها پر از مانع و خطر شد!", changes:{ obstacles:22, dangerCells:14 } },
+  { title:"شارژرها کند شدند و باتری شروع کمتر شد!", changes:{ chargeRate:4, startBattery:70 } },
+  { title:"باتری کم و وقت کم!", changes:{ startBattery:60, maxTime:120 } }
+];
+let envShocked = false;
+function showShockBanner(scenario, diffs){
+  const banner = $("shockBanner");
+  const changesTxt = diffs.map(d => SHOCK_LABELS[d.key] + " " + faNum(d.from) + " ← " + faNum(d.to)).join("، ");
+  banner.className = "shock-banner";
+  banner.innerHTML =
+    '<div class="shock-title">⚠ محیط ناگهان عوض شد! — ' + scenario.title + '</div>' +
+    '<div class="shock-changes">چه چیزهایی عوض شد؟<br>' + changesTxt + '</div>' +
+    '<p><b>استراتژی قبلی‌ات دیگر تضمین‌شده نیست.</b> قانون‌هایت را دست نزدیم تا خودت ببینی در محیط جدید چطور عمل می‌کنند. قانون‌ها را اصلاح کن، مأموریت را دوباره اجرا کن و بعد دوباره دکمهٔ «اجرای مقایسه» را بزن.</p>' +
+    '<p><b>یادآوری دربارهٔ Q-Learning:</b> عامل یادگیرنده هم روی محیط قبلی آموزش دیده است؛ تا دکمهٔ «یادگیری دوباره در محیط جدید» را نزنی، امتیازش در این محیط تازه احتمالاً افت می‌کند — درست مثل استراتژی ثابت تو.</p>';
+  banner.hidden = false;
+}
+function applyShock(){
+  const candidates = SHOCK_SCENARIOS.filter(sc => Object.keys(sc.changes).some(k => PARAMS[k] !== sc.changes[k]));
+  const pool = candidates.length ? candidates : SHOCK_SCENARIOS;
+  const scenario = pool[Math.floor(Math.random() * pool.length)];
+  const before = { ...PARAMS };
+  const next = { ...PARAMS };
+  for(const k in scenario.changes) next[k] = scenario.changes[k];
+  PARAMS = sanitizeParams(next);
+  persistParams(); syncPoints(); refreshParamLabels();
+  if(PARAMS.capacity === 1 || PARAMS.capacity === 2) $("capSel").value = String(PARAMS.capacity);
+  const diffs = [];
+  for(const k in scenario.changes){ if(before[k] !== PARAMS[k]) diffs.push({ key:k, from:before[k], to:PARAMS[k] }); }
+  if(!diffs.length) for(const k in scenario.changes) diffs.push({ key:k, from:before[k], to:PARAMS[k] });
+  envShocked = true;
+  $("restoreEnvBtn").disabled = false;
+  resetMission(Math.floor(Math.random()*90000)+10);
+  showShockBanner(scenario, diffs);
+  $("evalNote").textContent = "محیط عوض شده است! اول مأموریت را با همین قانون‌های فعلی اجرا کن و افت نتیجه را ببین؛ بعد قانون‌ها را اصلاح کن و مقایسه را دوباره اجرا کن. برای عامل یادگیرنده هم «یادگیری دوباره در محیط جدید» را بزن.";
+  try { $("shockBanner").scrollIntoView({ behavior:"smooth", block:"center" }); } catch(e){}
+}
+function restoreNormalEnv(){
+  PARAMS = sanitizeParams({ ...PARAM_DEFAULTS });
+  persistParams(); syncPoints(); refreshParamLabels();
+  $("capSel").value = "2";
+  envShocked = false;
+  $("restoreEnvBtn").disabled = true;
+  resetMission(Math.floor(Math.random()*90000)+10);
+  const banner = $("shockBanner");
+  banner.className = "shock-banner restored";
+  banner.innerHTML =
+    '<div class="shock-title">↩ به محیط عادی برگشتیم</div>' +
+    '<p>همهٔ پارامترها به مقدارهای پیش‌فرض برگشتند (ظرفیت حمل ' + faNum(PARAM_DEFAULTS.capacity) + ' نفر، زمان ' + faNum(PARAM_DEFAULTS.maxTime) + ' قدم، هزینهٔ خطر ' + faNum(PARAM_DEFAULTS.dangerCost) + ' و بقیهٔ پیش‌فرض‌ها) و مأموریت تازه از اول شروع شد. حالا می‌توانی استراتژی‌ات را دوباره در محیط اصلی آزمایش و مقایسه کنی.</p>';
+  banner.hidden = false;
+  $("evalNote").textContent = "محیط به حالت عادی برگشت. مقایسه را دوباره اجرا کن تا نتیجه را در محیط اصلی ببینی.";
+  try { banner.scrollIntoView({ behavior:"smooth", block:"center" }); } catch(e){}
+}
+$("shockBtn").addEventListener("click", applyShock);
+$("restoreEnvBtn").addEventListener("click", restoreNormalEnv);
+// اگر پارامترهای ذخیره‌شده با پیش‌فرض فرق دارند (مثلاً از شوک قبلی مانده‌اند)، دکمهٔ بازگشت فعال باشد
+(function(){ const keys = Object.keys(SHOCK_LABELS); if(keys.some(k => PARAMS[k] !== PARAM_DEFAULTS[k])){ envShocked = true; $("restoreEnvBtn").disabled = false; } })();
 
 /* ================= پنل ادمین ================= */
 let adminAuthed = false; // وضعیت ورود فقط در حافظهٔ همین نشست می‌ماند
