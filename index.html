@@ -158,15 +158,15 @@
   .bar-fill{ height:100%; border-radius:6px; }
   #trainChart{ width:100%; height:90px; display:block; margin-top:8px; }
   .note{ font-size:13px; color:var(--muted); }
-  /* ---------- بهینه‌سازی عددها ---------- */
-  .opt-zone{ margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--panel2); }
-  .opt-zone h3{ margin:0 0 4px; font-size:16.5px; font-weight:800; }
-  .opt-zone p{ margin:0 0 10px; color:var(--muted); font-size:13.5px; }
-  .opt-results{ margin-top:12px; display:grid; gap:6px; font-size:14px; }
-  .opt-results:empty{ display:none; }
-  .opt-row{ display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:7px 12px; }
-  .opt-row .chg{ color:var(--orange); font-weight:800; }
-  .opt-row .same{ color:var(--muted); }
+  /* ---------- استراتژی مدل ---------- */
+  .model-zone{ margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--panel2); }
+  .model-zone h3{ margin:0 0 4px; font-size:16.5px; font-weight:800; }
+  .model-zone > p{ margin:0 0 10px; color:var(--muted); font-size:13.5px; }
+  .model-list{ display:grid; gap:6px; margin-top:10px; }
+  .model-row{ background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 12px; font-size:14px; }
+  .model-row .if-part{ font-weight:700; }
+  .model-row .then-part{ color:var(--teal-dark); font-weight:800; }
+  .model-row .meta{ display:block; color:var(--muted); font-size:12.5px; margin-top:2px; }
   /* ---------- Sudden environment change ---------- */
   .shock-zone{ margin-top:16px; border:2px dashed color-mix(in srgb, var(--red) 55%, var(--line)); background:color-mix(in srgb, var(--red) 6%, var(--panel2)); border-radius:12px; padding:14px 16px; display:flex; flex-wrap:wrap; gap:12px 16px; align-items:center; }
   .shock-zone-text{ flex:1 1 260px; }
@@ -341,7 +341,7 @@
       </div>
       <div class="agent-card">
         <h3>عامل یادگیرنده (Q-Learning)</h3>
-        <p>حالت بازی را به چند ویژگی ساده تبدیل می‌کند (سطح باتری، پر بودن ظرفیت، نزدیکی مصدوم بحرانی و…) و برای هر حالت، ارزش هر اقدام را در یک جدول Q نگه می‌دارد.</p>
+        <p>حالت بازی را به چند ویژگی ریز تبدیل می‌کند: باتری در ۵ سطح (۰ تا ۲۰، ۲۰ تا ۴۰، ۴۰ تا ۶۰، ۶۰ تا ۸۰، ۸۰ تا ۱۰۰)، فاصلهٔ نزدیک‌ترین و بحرانی‌ترین مصدوم و فاصلهٔ شارژر هرکدام در ۳ سطح (۰ تا ۲، ۳ تا ۵، ۶ خانه یا بیشتر)، زمان باقی‌مانده در ۳ سطح و وضعیت ظرفیت حمل. برای هر حالت، ارزش هر ۶ اقدام (از جمله «نجات از مسیر امن») را در یک جدول Q نگه می‌دارد. هیچ آستانه و عددی از قبل به او داده نمی‌شود؛ خودش در طول آموزش یاد می‌گیرد مثلاً زیر چه باتری‌ای شارژ کند یا تا چه فاصله‌ای دنبال مصدوم بحرانی برود.</p>
         <div class="prog"><i id="trainProg"></i></div>
         <p class="note" id="trainInfo">هنوز آموزشی انجام نشده است.</p>
         <svg id="trainChart" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -350,6 +350,12 @@
           <button class="btn" id="resetTrainBtn" type="button">شروع دوبارهٔ آموزش از صفر</button>
         </div>
       </div>
+    </div>
+
+    <div class="model-zone" id="modelZone">
+      <h3>استراتژی مدل — چیزی که عامل یاد گرفته است</h3>
+      <p>اینجا می‌توانی مغز عامل یادگیرنده را بخوانی: بعد از آموزش، پرتکرارترین وضعیت‌هایی که عامل در تمرین دیده، به زبان ساده و به شکل «اگر … آنگاه …» نوشته می‌شود؛ همراه با اینکه هر وضعیت چند بار دیده شده و بهترین اقدامش در جدول Q چقدر ارزش دارد. این بخش بعد از هر آموزش و یادگیریِ دوباره، خودکار به‌روز می‌شود.</p>
+      <div id="modelStrategy"></div>
     </div>
 
     <div class="shock-zone" id="shockZone">
@@ -361,17 +367,6 @@
       <button class="btn" id="restoreEnvBtn" type="button" disabled>↩ بازگشت به محیط عادی</button>
     </div>
     <div class="shock-banner" id="shockBanner" hidden role="alert"></div>
-
-    <div class="opt-zone" id="optZone">
-      <h3>بهینه‌سازی عددهای استراتژی</h3>
-      <p>عددهای قانون‌هایت (درصد باتری، فاصله‌ها، قدم‌های باقی‌مانده و حاشیهٔ بازگشت) را لازم نیست حدس بزنی: این دکمه برای هر عدد چند مقدار مختلف را امتحان می‌کند، هر ترکیب را روی همان نقشه‌های مقایسه اجرا می‌کند و بهترین ترکیب را به تو نشان می‌دهد. ترتیب قانون‌ها و اقدام‌ها دست نمی‌خورد؛ فقط عددها جابه‌جا می‌شوند.</p>
-      <div class="row">
-        <button class="btn primary" id="optimizeBtn" type="button">🔍 بهینه‌سازی عددها</button>
-        <span class="note" id="optStatus">عددهای فعلی استراتژی‌ات نقطهٔ شروع جست‌وجوست.</span>
-      </div>
-      <div class="prog" id="optProgWrap" hidden><i id="optProg"></i></div>
-      <div class="opt-results" id="optOut"></div>
-    </div>
 
     <div class="row" style="margin-top:16px">
       <button class="btn accent" id="evalBtn" type="button" disabled>اجرای مقایسه روی ۳۰ نقشهٔ یکسان</button>
@@ -1039,12 +1034,14 @@ $("downloadBtn").addEventListener("click", ()=>{
 });
 
 /* ================= Q-Learning ================= */
-const QACT = ["rescueNearest","rescueUrgent","toBase","toCharger","search"];
+const QACT = ["rescueNearest","rescueUrgent","rescueSafe","toBase","toCharger","search"];
 let Q = {}, qTrained = false, qEpisodes = 0, trainCurve = [], qTraining = false;
+/* شمار دفعات دیده‌شدن هر وضعیت در طول آموزش؛ برای بخش «استراتژی مدل» لازم است */
+let QVisits = {};
 /* بهترین نقطهٔ ذخیره‌شده (checkpoint): در طول آموزش، جدول فعلی هر ۵۰ مأموریت روی یک مجموعهٔ
    اعتبارسنجی ثابت (۱۰ نقشه، بذرهای ۹۰۰۰ تا ۹۰۰۹) به‌صورت حریصانه ارزیابی می‌شود و کپی عمیق
    بهترین جدول نگه داشته می‌شود تا اگر آموزش در نقطهٔ بدی تمام شد، بهترین نسخه برگردد. */
-let bestQ = null, bestValScore = -Infinity, bestValAt = 0, bestValCapacity = null;
+let bestQ = null, bestValScore = -Infinity, bestValAt = 0, bestValCapacity = null, bestVisits = null;
 function evalQValidation(capacity){
   let total = 0;
   for(let i=0;i<10;i++){ const r = runEpisode(st => QACT[qChoose(st, 0)], 9000 + i, capacity, false, 0); total += r.score; }
@@ -1052,16 +1049,37 @@ function evalQValidation(capacity){
 }
 function checkpointQ(capacity){
   const s = evalQValidation(capacity);
-  if(s > bestValScore){ bestValScore = s; bestQ = JSON.parse(JSON.stringify(Q)); bestValAt = qEpisodes; bestValCapacity = capacity; }
+  if(s > bestValScore){ bestValScore = s; bestQ = JSON.parse(JSON.stringify(Q)); bestVisits = { ...QVisits }; bestValAt = qEpisodes; bestValCapacity = capacity; }
   return s;
 }
 /* نرخ کاوش (ε)، نرخ یادگیری (α) و ضریب تنزیل (γ) از PARAMS خوانده می‌شوند تا پنل ادمین رویشان اثر بگذارد */
-function qStateKey(obs, st){
-  const b = obs.battery < 30 ? 0 : obs.battery < 60 ? 1 : 2;
-  const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
-  return [b, carry, obs.crit && obs.critD<=3 ? 1:0, obs.nearest && obs.nearestD<=3 ? 1:0, obs.baseD<=3 ? 1:0, obs.battery < obs.baseCost+PARAMS.returnMargin ? 1:0].join("|");
+/* وضعیت Q عمداً ریز ساخته می‌شود تا عامل آستانه‌ها را خودش در آموزش یاد بگیرد،
+   نه اینکه عددها از قبل ثابت باشند:
+   - باتری در ۵ سطح: ۰–۲۰، ۲۰–۴۰، ۴۰–۶۰، ۶۰–۸۰، ۸۰–۱۰۰
+   - فاصلهٔ نزدیک‌ترین مصدوم، بحرانی‌ترین مصدوم و شارژر، هرکدام در ۳ سطح: ۰–۲، ۳–۵، ۶ یا بیشتر (یا هدفی نمانده)
+   - زمان باقی‌مانده در ۳ سطح: حداکثر ۲۵ قدم، ۲۶ تا ۷۵ قدم، بیش از ۷۵ قدم
+   - وضعیت ظرفیت حمل در ۳ سطح: خالی، نیمه‌پر، پر
+   مجموع: ۵×۳×۳×۳×۳×۳ = ۱۲۱۵ وضعیت ممکن و ۶ اقدام برای هر وضعیت. */
+function batteryBin(b){
+  const x = Math.max(0, Math.min(100, b));
+  return Math.min(4, Math.floor(x / 20));
 }
-function qRow(key){ if(!Q[key]) Q[key] = [0,0,0,0,0]; return Q[key]; }
+function distBin(d){
+  if(d === undefined || d === Infinity) return 2;
+  if(d <= 2) return 0;
+  if(d <= 5) return 1;
+  return 2;
+}
+function timeBin(t){
+  if(t <= 25) return 0;
+  if(t <= 75) return 1;
+  return 2;
+}
+function qStateKey(obs, st){
+  const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
+  return [batteryBin(obs.battery), carry, distBin(obs.nearestD), distBin(obs.crit ? obs.critD : Infinity), timeBin(obs.timeLeft), distBin(obs.chargerD)].join("|");
+}
+function qRow(key){ if(!Q[key]) Q[key] = new Array(QACT.length).fill(0); return Q[key]; }
 function qChoose(st, epsilon){
   const obs = observe(st); const row = qRow(qStateKey(obs, st));
   if(Math.random() < epsilon) return Math.floor(Math.random()*QACT.length);
@@ -1074,6 +1092,7 @@ function runEpisode(agentFn, seed, capacity, train, epsilon){
   while(!st.over && guard++ < 400){
     if(train){
       const obsBefore = observe(st); const keyBefore = qStateKey(obsBefore, st);
+      QVisits[keyBefore] = (QVisits[keyBefore] || 0) + 1;
       const ai = qChoose(st, epsilon);
       const info = stepEnv(st, QACT[ai]);
       totalReward += info.reward;
@@ -1093,7 +1112,7 @@ function trainQL(episodes, capacity, done){
   qTraining = true;
   $("trainBtn").disabled = true; $("finetuneBtn").disabled = true; $("resetTrainBtn").disabled = true;
   // اگر ظرفیت عوض شده باشد، امتیازهای اعتبارسنجی قبلی قابل مقایسه نیستند؛ بهترین نقطه از نو سنجیده می‌شود
-  if(bestValCapacity !== null && bestValCapacity !== capacity){ bestQ = null; bestValScore = -Infinity; bestValAt = 0; }
+  if(bestValCapacity !== null && bestValCapacity !== capacity){ bestQ = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0; }
   bestValCapacity = capacity;
   function bestTxt(){ return bestValScore === -Infinity ? "" : " — بهترین امتیاز اعتبارسنجی تا اینجا: " + faNum(bestValScore.toFixed(1)); }
   function chunk(){
@@ -1114,11 +1133,13 @@ function trainQL(episodes, capacity, done){
       let restored = false;
       if(bestQ && finalScore < bestValScore){
         Q = JSON.parse(JSON.stringify(bestQ));
+        if(bestVisits) QVisits = { ...bestVisits };
         restored = true;
       } else if(finalScore >= bestValScore){
-        bestValScore = finalScore; bestQ = JSON.parse(JSON.stringify(Q)); bestValAt = qEpisodes; bestValCapacity = capacity;
+        bestValScore = finalScore; bestQ = JSON.parse(JSON.stringify(Q)); bestVisits = { ...QVisits }; bestValAt = qEpisodes; bestValCapacity = capacity;
       }
       qTrained = true; qTraining = false;
+      renderModelStrategy();
       $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول Q." +
         (restored
           ? " جدول نهایی روی نقشه‌های اعتبارسنجی امتیاز " + faNum(finalScore.toFixed(1)) + " گرفت، اما بهترین نسخهٔ دیده‌شده در طول آموزش امتیاز " + faNum(bestValScore.toFixed(1)) + " داشت (مأموریت تمرینی " + faNum(bestValAt) + ")؛ همان بهترین نسخه حفظ شد تا آموزشِ تمام‌شده در یک نقطهٔ بد، عامل را خراب نکند."
@@ -1133,9 +1154,10 @@ function trainQL(episodes, capacity, done){
 /* شروع دوباره از صفر: جدول Q، شمار مأموریت‌ها، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده همه پاک می‌شوند */
 $("resetTrainBtn").addEventListener("click", ()=>{
   if(qTraining) return;
-  Q = {}; qTrained = false; qEpisodes = 0; trainCurve = [];
-  bestQ = null; bestValScore = -Infinity; bestValAt = 0; bestValCapacity = null;
+  Q = {}; QVisits = {}; qTrained = false; qEpisodes = 0; trainCurve = [];
+  bestQ = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0; bestValCapacity = null;
   drawCurve();
+  renderModelStrategy();
   $("trainProg").style.width = "0%";
   $("trainInfo").textContent = "همه‌چیز از صفر شروع شد: جدول Q، شمار مأموریت‌های تمرینی، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده پاک شدند. حالا دکمهٔ آموزش را بزن تا عامل از اول یاد بگیرد.";
   $("evalBtn").disabled = true; $("finetuneBtn").disabled = true;
@@ -1146,6 +1168,43 @@ function drawCurve(){
   const pts = trainCurve.map((v,i)=> (i/(trainCurve.length-1)*296+2).toFixed(1) + "," + (84 - (v-min)/rng*76).toFixed(1)).join(" ");
   svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="#0b7285" stroke-width="2.5"/>' +
     '<text x="4" y="12" font-size="9" fill="currentColor" opacity=".6">میانگین پاداش در هر ۲۵ مأموریت تمرینی</text>';
+}
+/* ================= استراتژی مدل: خوانا کردن چیزی که عامل یاد گرفته ================= */
+const BATT_TXT = ["باتری خیلی کم است (۰ تا ۲۰٪)", "باتری کم است (۲۰ تا ۴۰٪)", "باتری متوسط است (۴۰ تا ۶۰٪)", "باتری خوب است (۶۰ تا ۸۰٪)", "باتری پر است (۸۰ تا ۱۰۰٪)"];
+const CARRY_TXT = ["ربات هیچ مصدومی حمل نمی‌کند", "ربات مصدوم حمل می‌کند ولی ظرفیتش پر نیست", "ظرفیت حمل ربات پر است"];
+const NEAR_TXT = ["نزدیک‌ترین مصدوم خیلی نزدیک است (حداکثر ۲ خانه)", "نزدیک‌ترین مصدوم در فاصلهٔ متوسط است (۳ تا ۵ خانه)", "نزدیک‌ترین مصدوم دور است (۶ خانه یا بیشتر) یا مصدومی نمانده است"];
+const CRIT_TXT = ["مصدوم بحرانی خیلی نزدیک است (حداکثر ۲ خانه)", "مصدوم بحرانی در فاصلهٔ متوسط است (۳ تا ۵ خانه)", "مصدوم بحرانی دور است (۶ خانه یا بیشتر) یا مصدوم بحرانی‌ای در نقشه نمانده است"];
+const TIME_TXT = ["زمان کمی تا پایان مأموریت مانده است (حداکثر ۲۵ قدم)", "زمان باقی‌مانده متوسط است (۲۶ تا ۷۵ قدم)", "زمان زیادی تا پایان مأموریت مانده است (بیش از ۷۵ قدم)"];
+const CHARGER_TXT = ["شارژر خیلی نزدیک است (حداکثر ۲ خانه)", "شارژر در فاصلهٔ متوسط است (۳ تا ۵ خانه)", "شارژر دور است (۶ خانه یا بیشتر)"];
+function statePhrase(stateKeyStr){
+  const p = stateKeyStr.split("|").map(Number);
+  return [BATT_TXT[p[0]], CARRY_TXT[p[1]], NEAR_TXT[p[2]], CRIT_TXT[p[3]], TIME_TXT[p[4]], CHARGER_TXT[p[5]]].join(" و ");
+}
+function renderModelStrategy(){
+  const box = $("modelStrategy");
+  if(!box) return;
+  const entries = Object.keys(QVisits)
+    .filter(k => Q[k])
+    .map(k => {
+      const row = Q[k];
+      let bi = 0; for(let i=1;i<row.length;i++) if(row[i] > row[bi]) bi = i;
+      return { stateKey: k, count: QVisits[k], actionId: QACT[bi], q: row[bi] };
+    });
+  if(!qTrained || !entries.length){
+    box.innerHTML = '<p class="note">هنوز چیزی برای نمایش نیست — اول عامل یادگیرنده را آموزش بده؛ بعد از آموزش، پرتکرارترین وضعیت‌های دیده‌شده و بهترین اقدام هرکدام همین‌جا به زبان ساده نوشته می‌شود.</p>';
+    return;
+  }
+  entries.sort((a,b)=> (b.count - a.count) || (b.q - a.q));
+  const top = entries.slice(0, 12);
+  let html = '<p class="note">عامل در آموزش، ' + faNum(entries.length) + ' وضعیت متفاوت از ' + faNum(1215) + ' وضعیت ممکن را دیده است. این‌ها پرتکرارترین وضعیت‌ها و بهترین اقدام یادگرفته‌شده برای هرکدام‌اند:</p>';
+  html += '<div class="model-list">';
+  for(const e of top){
+    html += '<div class="model-row"><span class="if-part">اگر ' + statePhrase(e.stateKey) + '</span> ← <span class="then-part">آنگاه: ' + actLabel(e.actionId) + '</span>' +
+      '<span class="meta">این وضعیت ' + faNum(e.count) + ' بار در آموزش دیده شده — ارزش بهترین اقدام در جدول Q: ' + faNum(e.q.toFixed(2)) + '</span></div>';
+  }
+  html += '</div>';
+  if(entries.length > top.length) html += '<p class="note" style="margin-top:8px">… و ' + faNum(entries.length - top.length) + ' وضعیت دیگر که کمتر دیده شده‌اند و اینجا نشان داده نمی‌شوند.</p>';
+  box.innerHTML = html;
 }
 $("trainBtn").addEventListener("click", ()=> trainQL(PARAMS.trainEpisodes, Number($("capSel").value) || PARAMS.capacity));
 $("finetuneBtn").addEventListener("click", ()=>{
@@ -1185,123 +1244,6 @@ function evaluate(afterFinetune){
     : "نتیجه را ببین و از خودت بپرس: قانون‌های من کجا از ربات یادگیرنده بهترند و کجا بدتر؟ بعد قانون‌ها را اصلاح کن و مقایسه را تکرار کن.";
 }
 $("evalBtn").addEventListener("click", ()=> evaluate(false));
-
-/* ================= بهینه‌سازی عددهای استراتژی =================
-   جست‌وجوی مختصاتی (coordinate search): برای هر قانون کمی، مقدارهای نامزد یکی‌یکی
-   روی همان نقشه‌های مقایسه (بذرهای ۵۰۰۰ به بعد، به تعداد PARAMS.evalMaps) اجرا می‌شوند،
-   بهترین مقدار آن قانون نگه داشته می‌شود و بعد سراغ قانون بعدی می‌رویم.
-   ترتیب قانون‌ها و اقدام‌ها هرگز عوض نمی‌شود؛ فقط عددها. */
-function candidateValues(rule){
-  const def = condDef(rule.id);
-  if(!def || !def.param) return [];
-  let vals;
-  switch(def.param.kind){
-    case "battery": vals = [10,20,30,40,50,60,70,80]; break;
-    case "distance": vals = [1,2,3,4,5,6]; break;
-    case "distanceFar": vals = [3,4,5,6,7,8]; break;
-    case "time": vals = [10,20,30,40,60,80]; break;
-    case "margin": vals = [0,2,4,6,8,12]; break;
-    default: vals = [def.param.def];
-  }
-  const cur = ruleNum(rule);
-  if(!vals.includes(cur)) vals.push(cur);
-  return vals.slice().sort((a,b)=>a-b);
-}
-function evalRulesAvg(rulesCopy, capacity){
-  let total = 0, rescued = 0;
-  const N = PARAMS.evalMaps;
-  for(let i=0;i<N;i++){
-    const r = runEpisode(st => humanDecision(rulesCopy, st).actionId, 5000 + i, capacity, false, 0);
-    total += r.score; rescued += r.rescued;
-  }
-  return { score: total / N, rescued: rescued / N };
-}
-let optimizing = false, lastOptimization = null;
-function startOptimize(){
-  if(optimizing) return;
-  const quantIdx = [];
-  rules.forEach((r,i)=>{ if(condDef(r.id) && condDef(r.id).param) quantIdx.push(i); });
-  if(!rules.length){
-    $("optStatus").textContent = "اول در سازندهٔ استراتژی دست‌کم یک قانون بساز.";
-    $("optOut").innerHTML = "";
-    return;
-  }
-  if(!quantIdx.length){
-    $("optStatus").textContent = "استراتژی فعلی هیچ عددی ندارد که بهینه شود.";
-    $("optOut").innerHTML = '<div class="opt-row"><span>قانون‌های فعلی‌ات (مثل «ظرفیت پر است» یا «مصدوم بحرانی در نقشه هست») مؤلفهٔ کمی ندارند. یک قانون با عدد اضافه کن؛ مثلاً «باتری کمتر از…» یا «نزدیک‌ترین مصدوم در نزدیکی است».</span></div>';
-    return;
-  }
-  optimizing = true;
-  lastOptimization = null;
-  $("optimizeBtn").disabled = true;
-  $("optOut").innerHTML = "";
-  $("optProgWrap").hidden = false;
-  $("optProg").style.width = "0%";
-  const cap = Number($("capSel").value) || PARAMS.capacity;
-  const startRules = normalizeRules(JSON.parse(JSON.stringify(rules)));
-  const work = JSON.parse(JSON.stringify(startRules));
-  // صف کارها: اول امتیاز پایه، بعد برای هر قانون کمی همهٔ مقدارهای نامزدش
-  const jobs = [{ type:"baseline" }];
-  quantIdx.forEach(idx => candidateValues(startRules[idx]).forEach(v => jobs.push({ type:"try", ruleIdx: idx, value: v })));
-  const totalJobs = jobs.length;
-  let doneJobs = 0, baselineScore = null, currentBestScore = null;
-  function finish(){
-    optimizing = false;
-    $("optimizeBtn").disabled = false;
-    $("optProg").style.width = "100%";
-    const best = evalRulesAvg(work, cap);
-    lastOptimization = { rules: JSON.parse(JSON.stringify(work)), score: best.score, baselineScore: baselineScore, capacity: cap };
-    $("optStatus").textContent = "بهینه‌سازی تمام شد — روی همان " + faNum(PARAMS.evalMaps) + " نقشهٔ مقایسه و با ظرفیت حمل " + faNum(cap) + " نفر.";
-    let html = '<div class="opt-row"><span><b>امتیاز عددهای فعلی:</b> ' + faNum(baselineScore.toFixed(1)) + '</span><span><b>امتیاز بهترین ترکیب پیدا‌شده:</b> ' + faNum(best.score.toFixed(1)) + '</span>' +
-      (best.score > baselineScore + 0.001 ? '<span class="chg">بهبود: +' + faNum((best.score - baselineScore).toFixed(1)) + '</span>' : '<span class="same">عددهای فعلی‌ات از قبل بهترین ترکیب پیدا‌شده‌اند.</span>') + '</div>';
-    work.forEach((r,i)=>{
-      if(!(condDef(r.id) && condDef(r.id).param)) return;
-      const from = ruleNum(startRules[i]), to = ruleNum(r);
-      html += '<div class="opt-row"><span><b>قانون ' + faNum(i+1) + ':</b> ' + condLabel(startRules[i]) + '</span>' +
-        (from !== to ? '<span class="chg">' + faNum(from) + ' ← ' + faNum(to) + '</span>' : '<span class="same">بدون تغییر: ' + faNum(to) + '</span>') + '</div>';
-    });
-    if(best.score > baselineScore + 0.001){
-      html += '<div class="row" style="margin-top:4px"><button class="btn accent" id="applyOptBtn" type="button">اعمال بهترین عددها روی قانون‌های فعلی</button></div>';
-    }
-    $("optOut").innerHTML = html;
-    const applyBtn = $("applyOptBtn");
-    if(applyBtn) applyBtn.addEventListener("click", applyOptimization);
-  }
-  function applyOptimization(){
-    if(!lastOptimization) return;
-    // فقط عددها روی قانون‌های فعلی اعمال می‌شوند؛ ترتیب و اقدام‌ها دست نمی‌خورند
-    lastOptimization.rules.forEach((br,i)=>{
-      if(rules[i] && br.id === rules[i].id && condDef(br.id) && condDef(br.id).param) setRuleNum(rules[i], ruleNum(br));
-    });
-    renderRules(); validate(false);
-    $("optStatus").textContent = "بهترین عددها اعمال شدند (امتیاز روی نقشه‌های مقایسه: " + faNum(lastOptimization.score.toFixed(1)) + "). حالا مأموریت را اجرا کن یا دوباره مقایسه بگیر.";
-    const b = $("applyOptBtn"); if(b) b.disabled = true;
-    try { document.querySelector(".layout").scrollIntoView({ behavior:"smooth", block:"start" }); } catch(e){}
-  }
-  function step(){
-    if(!jobs.length){ finish(); return; }
-    const job = jobs.shift();
-    if(job.type === "baseline"){
-      const r = evalRulesAvg(work, cap);
-      baselineScore = r.score; currentBestScore = r.score;
-      $("optStatus").textContent = "امتیاز عددهای فعلی: " + faNum(baselineScore.toFixed(1)) + " — حالا مقدارهای دیگر را امتحان می‌کنم…";
-    } else {
-      const trial = JSON.parse(JSON.stringify(work));
-      setRuleNum(trial[job.ruleIdx], job.value);
-      const r = evalRulesAvg(trial, cap);
-      if(r.score > currentBestScore){
-        currentBestScore = r.score;
-        setRuleNum(work[job.ruleIdx], job.value);
-      }
-      $("optStatus").textContent = "در حال بهینه‌سازی… قانون " + faNum(job.ruleIdx+1) + " (" + condLabel(trial[job.ruleIdx]) + ") → امتیاز " + faNum(r.score.toFixed(1));
-    }
-    doneJobs++;
-    $("optProg").style.width = Math.round(doneJobs/totalJobs*100) + "%";
-    setTimeout(step, 0);
-  }
-  step();
-}
-$("optimizeBtn").addEventListener("click", startOptimize);
 
 /* ================= تغییر ناگهانی محیط ================= */
 const SHOCK_LABELS = { capacity:"ظرفیت حمل", maxTime:"زمان مأموریت", dangerCost:"هزینهٔ خطر", dangerCells:"خانه‌های خطرناک", obstacles:"موانع", chargeRate:"سرعت شارژ", startBattery:"باتری شروع" };
@@ -1443,6 +1385,7 @@ $("adminOverlay").addEventListener("click", e=>{ if(e.target === $("adminOverlay
 renderRules();
 renderSaved();
 refreshParamLabels();
+renderModelStrategy();
 resetMission(7);
 validate(false);
 </script>
