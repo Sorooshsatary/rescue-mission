@@ -160,8 +160,12 @@
   .note{ font-size:13px; color:var(--muted); }
   /* ---------- استراتژی مدل ---------- */
   .model-zone{ margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--panel2); }
-  .model-zone h3{ margin:0 0 4px; font-size:16.5px; font-weight:800; }
-  .model-zone > p{ margin:0 0 10px; color:var(--muted); font-size:13.5px; }
+  .model-toggle{ display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; background:none; border:none; padding:0; margin:0; cursor:pointer; font:inherit; color:inherit; text-align:right; }
+  .model-toggle .model-title{ font-size:16.5px; font-weight:800; }
+  .model-arrow{ font-size:15px; color:var(--muted); flex:none; line-height:1; }
+  .model-body{ margin-top:4px; }
+  .model-body > p{ margin:0 0 10px; color:var(--muted); font-size:13.5px; }
+  .model-body[hidden]{ display:none; }
   .model-list{ display:grid; gap:6px; margin-top:10px; }
   .model-row{ background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:8px 12px; font-size:14px; }
   .model-row .if-part{ font-weight:700; }
@@ -402,9 +406,14 @@
     </div>
 
     <div class="model-zone" id="modelZone">
-      <h3>استراتژی مدل — چیزی که عامل یاد گرفته است</h3>
-      <p>بعد از آموزش، اینجا می‌بینی عامل چی یاد گرفته — مثل قانون‌های خودت.</p>
-      <div id="modelStrategy"></div>
+      <button class="model-toggle" id="modelToggle" type="button" aria-expanded="false" aria-controls="modelBody">
+        <span class="model-title">استراتژی مدل — چیزی که عامل یاد گرفته است</span>
+        <span class="model-arrow" id="modelArrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="model-body" id="modelBody" hidden>
+        <p>بعد از آموزش، اینجا می‌بینی عامل چی یاد گرفته — مثل قانون‌های خودت.</p>
+        <div id="modelStrategy"></div>
+      </div>
     </div>
 
     <div class="row" style="margin-top:16px">
@@ -1407,6 +1416,14 @@ function renderModelStrategy(){
   html += '</div>';
   box.innerHTML = html;
 }
+/* دراپ‌دان بخش استراتژی مدل: پیش‌فرض بسته است؛ کلیک روی سربرگ، بدنه را باز و بسته می‌کند. */
+$("modelToggle").addEventListener("click", ()=>{
+  const body = $("modelBody"), arrow = $("modelArrow"), btn = $("modelToggle");
+  const open = body.hidden;
+  body.hidden = !open;
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  arrow.textContent = open ? "▴" : "▾";
+});
 $("trainBtn").addEventListener("click", ()=> trainQL(PARAMS.trainEpisodes, Number($("capSel").value) || PARAMS.capacity));
 $("finetuneBtn").addEventListener("click", ()=>{
   const cap = Number($("capSel").value);
