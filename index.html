@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>مأموریت نجات — Rescue Mission</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+  * { box-sizing: border-box; }
+  :root{
+    --bg:#eef2f0; --panel:#ffffff; --panel2:#f4f7f5; --ink:#16211d; --muted:#5b6b64;
+    --line:#d7e0db; --teal:#0b7285; --teal-dark:#095a6a; --orange:#e4572e; --red:#d64545;
+    --amber:#e8a13a; --green:#2f9e6e; --cell:#e8efec; --cell-line:#d3ddd8;
+    --danger-cell:#f6d9c8; --obstacle:#9aa7a1; --shadow:0 2px 10px rgba(20,40,35,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0c1417; --panel:#142126; --panel2:#1a2a30; --ink:#e8f1ee; --muted:#9db3ac;
+      --line:#2a3d43; --teal:#2bb3c0; --teal-dark:#2bb3c0; --orange:#f0734a; --red:#ff7a6b;
+      --amber:#f0b45a; --green:#4cc38a; --cell:#1b2b31; --cell-line:#26383f;
+      --danger-cell:#4a2c20; --obstacle:#54666d; --shadow:0 2px 12px rgba(0,0,0,.35);
+    }
+  }
+  html{ -webkit-text-size-adjust:100%; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:"Vazirmatn", system-ui, sans-serif; line-height:1.7; }
+  .wrap{ max-width:1440px; margin:0 auto; padding:18px 16px 40px; }
+  header.top{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 20px; margin-bottom:6px; }
+  header.top h1{ margin:0; font-size:clamp(24px,4vw,36px); font-weight:900; letter-spacing:-.01em; }
+  header.top h1 .en{ color:var(--teal); font-size:.55em; font-weight:800; }
+  header.top p{ margin:0; color:var(--muted); max-width:640px; font-size:15px; }
+  .howto{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px; }
+  .howto span{ background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:5px 14px; font-size:13.5px; font-weight:500; box-shadow:var(--shadow); }
+  .howto b{ color:var(--teal); }
+  .layout{ display:grid; grid-template-columns:350px minmax(0,1fr) 330px; gap:16px; align-items:start; }
+  @media (max-width:1180px){ .layout{ grid-template-columns:1fr 1fr; } .board-col{ grid-column:1 / -1; order:-1; } }
+  @media (max-width:720px){ .layout{ grid-template-columns:1fr; } }
+  section.panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow); }
+  section.panel h2{ margin:0 0 4px; font-size:19px; font-weight:800; }
+  section.panel .sub{ color:var(--muted); font-size:13.5px; margin:0 0 12px; }
+  /* ---------- Strategy Builder ---------- */
+  .rule-card{ background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; }
+  .rule-card.active{ outline:2px solid var(--orange); outline-offset:1px; }
+  .rule-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .prio{ background:var(--teal); color:#fff; font-weight:800; border-radius:999px; min-width:30px; height:30px; display:inline-flex; align-items:center; justify-content:center; font-size:14px; padding:0 8px; }
+  .rule-head .rtitle{ font-weight:800; font-size:15px; }
+  .rule-tools{ margin-inline-start:auto; display:flex; gap:4px; }
+  .icon-btn{ width:36px; height:36px; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:9px; cursor:pointer; font-size:15px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+  .icon-btn:hover{ border-color:var(--teal); color:var(--teal); }
+  .icon-btn:disabled{ opacity:.35; cursor:default; }
+  .icon-btn.del:hover{ border-color:var(--red); color:var(--red); }
+  .ifthen{ display:grid; grid-template-columns:auto 1fr; gap:6px 10px; align-items:center; }
+  .tag{ font-size:12px; font-weight:800; border-radius:6px; padding:2px 8px; text-align:center; }
+  .tag.if{ background:var(--teal); color:#fff; }
+  .tag.then{ background:var(--orange); color:#fff; }
+  select, input[type="text"]{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; }
+  select:focus, input:focus{ outline:2px solid var(--teal); outline-offset:1px; }
+  .thresh-row{ grid-column:2; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .thresh-row select{ width:auto; }
+  .btn{ font:inherit; font-weight:700; font-size:14.5px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--ink); padding:8px 16px; cursor:pointer; display:inline-flex; align-items:center; gap:7px; justify-content:center; }
+  .btn:hover{ border-color:var(--teal); }
+  .btn.primary{ background:var(--teal); border-color:var(--teal); color:#fff; }
+  .btn.primary:hover{ background:var(--teal-dark); }
+  .btn.accent{ background:var(--orange); border-color:var(--orange); color:#fff; }
+  .btn:disabled{ opacity:.45; cursor:default; }
+  .btn.small{ font-size:13px; padding:5px 12px; }
+  .row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .builder-foot{ border-top:1px dashed var(--line); margin-top:12px; padding-top:12px; }
+  .status-line{ font-size:13.5px; color:var(--muted); margin-top:8px; }
+  .status-line b{ color:var(--green); }
+  .warn{ background:color-mix(in srgb, var(--amber) 14%, transparent); border:1px solid color-mix(in srgb, var(--amber) 45%, transparent); border-radius:10px; padding:8px 12px; font-size:13px; margin-top:10px; }
+  .warn:empty{ display:none; }
+  .preset-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  @media (max-width:420px){ .preset-row{ grid-template-columns:1fr; } }
+  .preset{ text-align:center; border:1px solid var(--line); background:var(--panel2); border-radius:10px; padding:8px 6px; cursor:pointer; font:inherit; }
+  .preset b{ display:block; font-size:14px; }
+  .preset small{ color:var(--muted); font-size:12px; }
+  .preset:hover{ border-color:var(--teal); }
+  .saved-list{ margin-top:10px; display:grid; gap:6px; }
+  .saved-item{ display:flex; align-items:center; gap:8px; background:var(--panel2); border:1px solid var(--line); border-radius:9px; padding:5px 10px; font-size:14px; }
+  .saved-item .nm{ font-weight:700; }
+  .saved-item .cnt{ color:var(--muted); font-size:12.5px; }
+  .saved-item .sp{ flex:1; }
+  /* ---------- Board ---------- */
+  .hud{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+  .hud .stat{ background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:7px 10px; text-align:center; }
+  .hud .stat .v{ font-size:19px; font-weight:900; line-height:1.3; }
+  .hud .stat .k{ font-size:12px; color:var(--muted); }
+  .batt-wrap{ grid-column:1 / -1; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:8px 12px; }
+  .batt-bar{ height:12px; border-radius:999px; background:var(--cell); overflow:hidden; margin-top:4px; }
+  .batt-fill{ height:100%; background:var(--green); border-radius:999px; transition:width .25s; }
+  .batt-fill.mid{ background:var(--amber); } .batt-fill.low{ background:var(--red); }
+  .board{ display:grid; grid-template-columns:repeat(12,1fr); gap:2px; background:var(--cell-line); border:2px solid var(--cell-line); border-radius:10px; overflow:hidden; direction:ltr; }
+  .cell{ aspect-ratio:1; background:var(--cell); position:relative; display:flex; align-items:center; justify-content:center; }
+  .cell.danger{ background:var(--danger-cell); }
+  .cell.danger::after{ content:""; position:absolute; inset:0; background:repeating-linear-gradient(45deg, transparent 0 5px, rgba(212,69,69,.18) 5px 7px); }
+  .cell.obstacle{ background:var(--obstacle); }
+  .cell.obstacle::after{ content:""; position:absolute; inset:22%; background:rgba(0,0,0,.22); border-radius:3px; transform:rotate(12deg); }
+  .cell.base{ background:color-mix(in srgb, var(--teal) 26%, var(--cell)); }
+  .cell.charger{ background:color-mix(in srgb, var(--amber) 30%, var(--cell)); }
+  .cell svg{ width:72%; height:72%; position:relative; z-index:2; }
+  .cell .base-flag{ position:absolute; z-index:1; font-size:10px; font-weight:800; color:var(--teal-dark); bottom:1px; inset-inline:0; text-align:center; }
+  .surv-dot{ position:relative; z-index:2; width:68%; height:68%; }
+  @keyframes pulse { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.18);} }
+  .surv-dot.crit{ animation:pulse 1s infinite; }
+  @media (prefers-reduced-motion: reduce){ .surv-dot.crit{ animation:none; } .batt-fill{ transition:none; } }
+  .cell.robot-cell{ background:color-mix(in srgb, var(--orange) 22%, var(--cell)); }
+  .legend{ display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12.5px; color:var(--muted); margin-top:10px; }
+  .legend i{ display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-inline-end:5px; }
+  .controls{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; align-items:center; }
+  .controls select{ width:auto; }
+  .mission-msg{ margin-top:12px; border-radius:10px; padding:10px 14px; font-weight:700; font-size:15px; display:none; }
+  .mission-msg.win{ display:block; background:color-mix(in srgb, var(--green) 16%, transparent); border:1px solid var(--green); }
+  .mission-msg.lose{ display:block; background:color-mix(in srgb, var(--red) 12%, transparent); border:1px solid var(--red); }
+  .replay-bar{ display:none; margin-top:12px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+  .replay-bar.on{ display:block; }
+  .replay-bar input[type="range"]{ flex:1; min-height:36px; accent-color:var(--teal); }
+  /* ---------- Inspector ---------- */
+  .obs-list{ list-style:none; margin:0 0 12px; padding:0; display:grid; gap:6px; font-size:14px; }
+  .obs-list li{ background:var(--panel2); border:1px solid var(--line); border-radius:9px; padding:6px 12px; display:flex; justify-content:space-between; gap:10px; }
+  .obs-list li b{ font-weight:800; }
+  .check-list{ display:grid; gap:6px; margin-bottom:12px; }
+  .check{ display:flex; gap:9px; align-items:flex-start; border:1px solid var(--line); border-radius:9px; padding:7px 11px; font-size:13.5px; background:var(--panel2); }
+  .check .badge{ flex:none; font-size:11.5px; font-weight:800; border-radius:999px; padding:1px 9px; margin-top:2px; }
+  .check.yes{ border-color:var(--orange); background:color-mix(in srgb, var(--orange) 10%, var(--panel2)); }
+  .check.yes .badge{ background:var(--orange); color:#fff; }
+  .check.no{ opacity:.75; } .check.no .badge{ background:var(--cell); color:var(--muted); border:1px solid var(--line); }
+  .check.skip{ opacity:.45; } .check.skip .badge{ background:transparent; color:var(--muted); border:1px dashed var(--line); }
+  .chosen{ border-radius:10px; padding:10px 14px; font-weight:800; font-size:15px; background:color-mix(in srgb, var(--teal) 13%, transparent); border:1px solid var(--teal); margin-bottom:12px; }
+  .chosen:empty{ display:none; }
+  .log{ list-style:none; margin:0; padding:0; font-size:12.8px; color:var(--muted); max-height:220px; overflow:auto; display:grid; gap:4px; }
+  .log li{ border-bottom:1px dashed var(--line); padding-bottom:4px; }
+  .log b{ color:var(--ink); }
+  /* ---------- Compare / RL ---------- */
+  .compare{ margin-top:16px; }
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:900px){ .compare-grid{ grid-template-columns:1fr; } }
+  .agent-card{ border:1px solid var(--line); border-radius:12px; padding:14px; background:var(--panel2); }
+  .agent-card h3{ margin:0 0 4px; font-size:16.5px; font-weight:800; }
+  .agent-card p{ margin:0; color:var(--muted); font-size:13.5px; }
+  .prog{ height:10px; background:var(--cell); border-radius:999px; overflow:hidden; margin:10px 0 4px; }
+  .prog i{ display:block; height:100%; width:0; background:var(--teal); transition:width .2s; }
+  table.results{ width:100%; border-collapse:collapse; font-size:13.5px; margin-top:12px; }
+  table.results th, table.results td{ border:1px solid var(--line); padding:7px 9px; text-align:center; }
+  table.results th{ background:var(--panel2); font-weight:800; }
+  table.results td:first-child, table.results th:first-child{ text-align:right; font-weight:700; }
+  .bars{ margin-top:14px; display:grid; gap:8px; }
+  .bar-row{ display:grid; grid-template-columns:170px 1fr 52px; gap:10px; align-items:center; font-size:13px; }
+  @media (max-width:560px){ .bar-row{ grid-template-columns:110px 1fr 44px; } }
+  .bar-track{ height:16px; background:var(--cell); border-radius:6px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:6px; }
+  #trainChart{ width:100%; height:90px; display:block; margin-top:8px; }
+  .note{ font-size:13px; color:var(--muted); }
+  .local-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px; }
+  @media (max-width:760px){ .local-grid{ grid-template-columns:1fr; } }
+  .local-grid h3{ margin:0 0 6px; font-size:15.5px; font-weight:800; }
+  .local-grid ol{ margin:0; padding-inline-start:20px; font-size:14px; }
+  .local-grid p{ margin:0 0 10px; font-size:14px; }
+  .code-box{ direction:ltr; text-align:left; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; line-height:1.9; overflow-x:auto; white-space:nowrap; margin:0 0 10px; }
+  footer{ margin-top:26px; color:var(--muted); font-size:13px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>مأموریت نجات <span class="en">RESCUE MISSION</span></h1>
+    <p>مغز ربات نجات را خودت طراحی کن: قانون بنویس، اولویت بده، اجرایش را تماشا کن و ببین در هر قدم <b>چرا</b> آن تصمیم را گرفت. بدون حتی یک خط کدنویسی.</p>
+  </header>
+
+  <div class="howto">
+    <span><b>۱.</b> قانون بساز: اگر… آنگاه…</span>
+    <span><b>۲.</b> با فلش‌ها اولویت‌ها را جابه‌جا کن</span>
+    <span><b>۳.</b> «اجرای آزمایشی» را بزن و تصمیم‌های ربات را در بازرس تصمیم دنبال کن</span>
+    <span><b>۴.</b> استراتژی‌ات را با ربات یادگیرنده (Q-Learning) مقایسه کن</span>
+  </div>
+
+  <div class="layout">
+    <!-- ===== Strategy Builder ===== -->
+    <section class="panel" aria-label="سازنده استراتژی">
+      <h2>سازندهٔ استراتژی</h2>
+      <p class="sub">ربات در هر قدم قانون‌ها را از بالا به پایین می‌خواند و <b>اولین قانون برقرار</b> را اجرا می‌کند. پس ترتیب، یعنی اولویت.</p>
+
+      <div class="preset-row">
+        <button class="preset" id="presetA" type="button"><b>استراتژی A — نجات‌محور</b><small>اول نجات بحرانی، بعد شارژ، بعد بازگشت</small></button>
+        <button class="preset" id="presetB" type="button"><b>استراتژی B — ایمنی‌محور</b><small>اول شارژ، بعد بازگشت، بعد نجات بحرانی</small></button>
+        <button class="preset" id="presetC" type="button"><b>استراتژی C — امتیاز و سرعت</b><small>شکار مداوم مصدوم؛ شارژ فقط وقتی باتری واقعاً کم است</small></button>
+        <button class="preset" id="presetD" type="button"><b>استراتژی D — محافظه‌کار باتری</b><small>شارژ زودهنگام و محتاطانه؛ هیچ‌وقت با باتری کم ریسک نمی‌کند</small></button>
+        <button class="preset" id="presetE" type="button"><b>استراتژی E — متعادل هوشمند</b><small>تحویل سریع وقتی پایگاه نزدیک است، شارژ هوشمند، وگرنه نجات</small></button>
+        <button class="preset" id="presetF" type="button"><b>استراتژی F — مسیر امن</b><small>دوری از زمین خطرناک با مسیر امن، حتی اگر راه طولانی‌تر شود</small></button>
+      </div>
+      <p class="note" style="margin:-4px 0 12px">شش استراتژی آماده فقط نقطهٔ شروع‌اند: شرط‌ها و اقدام‌های تازه‌ای هم اضافه شده (مثل «مصدوم بحرانی هنوز در نقشه هست»، «باتری بالاست»، «شارژ هوشمند» و «نجات از مسیر امن») تا ترکیب‌های خیلی بیشتری بسازی و نتیجه‌شان را با هم مقایسه کنی.</p>
+
+      <div id="rulesList"></div>
+
+      <div class="builder-foot">
+        <div class="row">
+          <button class="btn" id="addRule" type="button">+ افزودن قانون</button>
+          <button class="btn" id="checkStrategy" type="button">بررسی استراتژی من</button>
+        </div>
+        <div class="warn" id="warnBox" role="status"></div>
+        <p class="status-line" id="ruleCount"></p>
+        <p class="note">اگر هیچ قانونی برقرار نباشد، ربات از رفتار پیش‌فرض استفاده می‌کند: اگر مصدومی حمل می‌کند به پایگاه برمی‌گردد، وگرنه به جست‌وجوی مصدومان می‌رود.</p>
+        <div class="row" style="margin-top:10px">
+          <input type="text" id="stratName" placeholder="نام استراتژی، مثلاً «شجاعانه»" aria-label="نام استراتژی" style="flex:1; min-width:140px" />
+          <button class="btn small" id="saveStrat" type="button">ذخیرهٔ استراتژی</button>
+        </div>
+        <div class="saved-list" id="savedList"></div>
+      </div>
+    </section>
+
+    <!-- ===== Board ===== -->
+    <section class="panel board-col" aria-label="صفحه بازی">
+      <div class="hud">
+        <div class="stat"><div class="v" id="hudScore">۰</div><div class="k">امتیاز نجات</div></div>
+        <div class="stat"><div class="v" id="hudRescued">۰ از ۶</div><div class="k">مصدوم تحویل‌شده</div></div>
+        <div class="stat"><div class="v" id="hudCarry">۰ از ۲</div><div class="k">در حال حمل</div></div>
+        <div class="stat"><div class="v" id="hudTime">۰</div><div class="k">زمان سپری‌شده</div></div>
+        <div class="batt-wrap">
+          <div class="row" style="justify-content:space-between"><span style="font-size:13px; font-weight:700">باتری ربات</span><b id="hudBattTxt">۱۰۰٪</b></div>
+          <div class="batt-bar"><div class="batt-fill" id="hudBatt" style="width:100%"></div></div>
+        </div>
+      </div>
+
+      <div class="board" id="board" role="img" aria-label="شبکه ۱۲ در ۱۲ مأموریت نجات"></div>
+
+      <div class="legend">
+        <span><i style="background:var(--teal)"></i>پایگاه</span>
+        <span><i style="background:var(--amber)"></i>ایستگاه شارژ</span>
+        <span><i style="background:var(--obstacle)"></i>مانع</span>
+        <span><i style="background:var(--danger-cell); border:1px solid var(--red)"></i>زمین خطرناک (۳ برابر مصرف باتری)</span>
+        <span><i style="background:var(--red); border-radius:50%"></i>مصدوم بحرانی</span>
+        <span><i style="background:var(--amber); border-radius:50%"></i>مصدوم فوری</span>
+        <span><i style="background:var(--green); border-radius:50%"></i>مصدوم عادی</span>
+      </div>
+
+      <div class="controls">
+        <button class="btn primary" id="playBtn" type="button">▶ اجرای آزمایشی</button>
+        <button class="btn" id="stepBtn" type="button">یک قدم</button>
+        <button class="btn" id="resetBtn" type="button">از اول</button>
+        <button class="btn" id="newMapBtn" type="button">نقشهٔ جدید</button>
+        <label style="font-size:13.5px">سرعت
+          <select id="speedSel" aria-label="سرعت اجرا">
+            <option value="700">آرام</option>
+            <option value="380" selected>معمولی</option>
+            <option value="150">سریع</option>
+          </select>
+        </label>
+        <button class="btn accent" id="replayBtn" type="button" disabled>تماشای بازپخش</button>
+      </div>
+
+      <div class="mission-msg" id="missionMsg" role="status"></div>
+
+      <div class="replay-bar" id="replayBar">
+        <div class="row" style="margin-bottom:6px">
+          <b>بازپخش مأموریت</b>
+          <span class="note" id="replayInfo"></span>
+          <span style="flex:1"></span>
+          <button class="btn small" id="replayExit" type="button">خروج از بازپخش</button>
+        </div>
+        <div class="row">
+          <button class="icon-btn" id="rpPrev" type="button" aria-label="قدم قبل">→</button>
+          <button class="btn small primary" id="rpPlay" type="button">پخش</button>
+          <button class="icon-btn" id="rpNext" type="button" aria-label="قدم بعد">←</button>
+          <input type="range" id="rpSlider" min="0" max="0" value="0" aria-label="نوار بازپخش" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Decision Inspector ===== -->
+    <section class="panel" aria-label="بازرس تصمیم">
+      <h2>بازرس تصمیم <span style="font-size:12px; color:var(--muted)">Decision Inspector</span></h2>
+      <p class="sub">در هر قدم ببین ربات چه می‌بیند، کدام قانون‌ها برقرارند و چرا این اقدام انتخاب شد.</p>
+      <ul class="obs-list" id="obsList">
+        <li><span>وضعیت ربات</span><b>آمادهٔ شروع</b></li>
+      </ul>
+      <div class="check-list" id="checkList"></div>
+      <div class="chosen" id="chosenBox"></div>
+      <h3 style="margin:14px 0 6px; font-size:15px">تاریخچهٔ تصمیم‌ها</h3>
+      <ul class="log" id="decisionLog"></ul>
+    </section>
+  </div>
+
+  <!-- ===== Compare with Q-Learning ===== -->
+  <section class="panel compare" aria-label="مقایسه با عامل یادگیرنده">
+    <h2>آزمایش بزرگ: استراتژی تو در برابر ربات یادگیرنده</h2>
+    <p class="sub">ربات یادگیرنده هیچ قانونی از تو ندارد؛ با روش <b>Q-Learning</b> و آزمون‌وخطا روی صدها نقشه یاد می‌گیرد چه کار کند. هر دو را روی <b>۳۰ نقشهٔ یکسان</b> آزمایش می‌کنیم تا مقایسه عادلانه باشد.</p>
+    <div class="compare-grid">
+      <div class="agent-card">
+        <h3>استراتژی تو (Human Strategy)</h3>
+        <p>همان قانون‌هایی که در سازندهٔ استراتژی ساخته‌ای؛ دقیق، قابل پیش‌بینی و کاملاً وابسته به اولویت‌هایی که انتخاب کرده‌ای.</p>
+      </div>
+      <div class="agent-card">
+        <h3>عامل یادگیرنده (Q-Learning)</h3>
+        <p>حالت بازی را به چند ویژگی ساده تبدیل می‌کند (سطح باتری، پر بودن ظرفیت، نزدیکی مصدوم بحرانی و…) و برای هر حالت، ارزش هر اقدام را در یک جدول Q نگه می‌دارد.</p>
+        <div class="prog"><i id="trainProg"></i></div>
+        <p class="note" id="trainInfo">هنوز آموزشی انجام نشده است.</p>
+        <svg id="trainChart" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="row" style="margin-top:8px">
+          <button class="btn primary" id="trainBtn" type="button">آموزش عامل یادگیرنده (۴۰۰ مأموریت تمرینی)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:16px">
+      <button class="btn accent" id="evalBtn" type="button" disabled>اجرای مقایسه روی ۳۰ نقشهٔ یکسان</button>
+      <label style="font-size:14px">تغییر محیط آزمایش:
+        <select id="capSel" aria-label="ظرفیت حمل در محیط آزمایش">
+          <option value="2" selected>ظرفیت حمل ۲ نفر (محیط اصلی)</option>
+          <option value="1">ظرفیت حمل ۱ نفر (محیط تغییریافته)</option>
+        </select>
+      </label>
+      <button class="btn" id="finetuneBtn" type="button" disabled>یادگیری دوباره در محیط جدید</button>
+    </div>
+    <p class="note" id="evalNote">اول عامل یادگیرنده را آموزش بده، بعد مقایسه را اجرا کن. وقتی ظرفیت حمل از ۲ به ۱ می‌رسد، ببین استراتژی ثابت تو و سیاست یادگرفته‌شده چطور رفتار می‌کنند — و آیا یادگیری دوباره کمک می‌کند یا نه.</p>
+    <div id="evalOut"></div>
+  </section>
+
+  <!-- ===== Local download / run ===== -->
+  <section class="panel compare" aria-label="دانلود و اجرای لوکال">
+    <h2>دانلود کد کامل و اجرای لوکال</h2>
+    <p class="sub">کل این بازی — صفحه، سبک‌ها و همهٔ منطق بازی و Q-Learning — در <b>یک فایل HTML تکی و مستقل</b> است؛ نه سرور می‌خواهد، نه دیتابیس، نه نصب هیچ برنامه‌ای. همین فایل را دانلود کن و روی کامپیوتر خودت اجرایش کن.</p>
+    <div class="local-grid">
+      <div>
+        <h3>روش ۱ — ساده‌ترین راه</h3>
+        <ol>
+          <li>دکمهٔ زیر را بزن و فایل <bdi>rescue-mission.html</bdi> را دانلود کن.</li>
+          <li>روی فایل دانلودشده دوبار کلیک کن؛ در مرورگرت (کروم، فایرفاکس، اج…) باز می‌شود و بازی کامل کار می‌کند.</li>
+        </ol>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="downloadBtn" type="button">⬇ دانلود فایل کامل بازی (index.html)</button>
+        </div>
+        <p class="status-line" id="downloadNote"></p>
+      </div>
+      <div>
+        <h3>روش ۲ — با سرور لوکال</h3>
+        <p>اگر ترجیح می‌دهی با یک سرور محلی اجرایش کنی، فایل را در یک پوشه بگذار و یکی از این دستورها را در همان پوشه اجرا کن:</p>
+        <p class="code-box">python3 -m http.server 8000</p>
+        <p>یا اگر پایتون نداری:</p>
+        <p class="code-box">npx serve .</p>
+        <p>بعد در مرورگر برو به <bdi>http://localhost:8000/rescue-mission.html</bdi></p>
+        <p class="note">تنها وابستگی اینترنتی فایل، فونت وزیرمتن از گوگل‌فونت است؛ آفلاین هم بازی کامل کار می‌کند و فقط فونت جایگزین سیستم نمایش داده می‌شود. کد را با هر ویرایشگری (مثل VS Code) می‌توانی باز کنی و تغییر بدهی — بخش‌های بازی با کامنت‌های فارسی از هم جدا شده‌اند.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>مأموریت نجات — یک بازی آموزشی برای فهم تصمیم‌گیری ربات‌ها: قانون، اولویت و یادگیری از تجربه.</footer>
+</div>
+
+<script>
+"use strict";
+/* ================= ابزارها ================= */
+const $ = id => document.getElementById(id);
+const FA = "۰۱۲۳۴۵۶۷۸۹";
+const faNum = n => String(n).replace(/\d/g, d => FA[d]);
+const faPct = n => faNum(Math.round(n)) + "٪";
+function mulberry32(a){ return function(){ a|=0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const key = (x,y) => y*12 + x;
+const inB = (x,y) => x>=0 && x<12 && y>=0 && y<12;
+
+/* ================= تعریف شرط‌ها و اقدام‌ها ================= */
+const CONDITIONS = [
+  { id:"full",            label:"ظرفیت حمل ربات پر است" },
+  { id:"carryingAny",     label:"ربات حداقل یک مصدوم حمل می‌کند" },
+  { id:"batteryBelow",    label:"باتری کمتر از حد انتخابی است", threshold:true },
+  { id:"batteryAbove",    label:"باتری بیشتر از حد انتخابی است", threshold:true },
+  { id:"criticalNear",    label:"مصدوم بحرانی در نزدیکی است (حداکثر ۳ خانه)" },
+  { id:"criticalExists",  label:"هنوز مصدوم بحرانی نجات‌نیافته‌ای در نقشه هست (هر فاصله‌ای)" },
+  { id:"urgentNear",      label:"مصدوم فوری در نزدیکی است (حداکثر ۳ خانه)" },
+  { id:"survivorNear",    label:"نزدیک‌ترین مصدوم حداکثر ۳ خانه فاصله دارد" },
+  { id:"noSurvivorVisible", label:"هیچ مصدومی در محدودهٔ دید نیست" },
+  { id:"baseNear",        label:"پایگاه نزدیک است (حداکثر ۳ خانه)" },
+  { id:"baseFar",         label:"پایگاه دور است (بیش از ۵ خانه)" },
+  { id:"chargerNear",     label:"ایستگاه شارژ نزدیک است (حداکثر ۳ خانه)" },
+  { id:"timeLow",         label:"زمان کمی تا پایان مأموریت مانده (۳۰ قدم یا کمتر)" },
+  { id:"lowForReturn",    label:"باتری برای بازگشت به پایگاه کافی نیست" }
+];
+const ACTIONS = [
+  { id:"rescueNearest", label:"نجات نزدیک‌ترین مصدوم" },
+  { id:"rescueUrgent",  label:"نجات بحرانی‌ترین مصدوم" },
+  { id:"rescueSafe",    label:"نجات نزدیک‌ترین مصدوم از مسیر امن (دوری از زمین خطرناک)" },
+  { id:"toBase",        label:"بازگشت به پایگاه" },
+  { id:"deliverPartial", label:"تحویل مصدومان حمل‌شده (اگر ندارد: جست‌وجو)" },
+  { id:"toCharger",     label:"رفتن به نزدیک‌ترین شارژر" },
+  { id:"chargeSmart",   label:"شارژ هوشمند (باتری زیر ۸۰٪: شارژ؛ وگرنه: نجات)" },
+  { id:"search",        label:"جست‌وجوی مصدومان" }
+];
+const condLabel = c => CONDITIONS.find(x=>x.id===c.id).label.replace("حد انتخابی", faNum(c.threshold ?? 30) + "٪");
+const actLabel  = id => ACTIONS.find(x=>x.id===id).label;
+const POINTS = { normal:10, urgent:20, critical:30 };
+const LEVEL_NAME = { normal:"عادی", urgent:"فوری", critical:"بحرانی" };
+
+/* ================= ساخت نقشه ================= */
+function genMap(seed, capacity){
+  for(let attempt=0; attempt<200; attempt++){
+    const rnd = mulberry32(seed*1000 + attempt);
+    const base = { x:0, y:11 };
+    const used = new Set([key(base.x, base.y)]);
+    const pick = () => { let x,y,k; do { x = Math.floor(rnd()*12); y = Math.floor(rnd()*12); k = key(x,y); } while(used.has(k)); used.add(k); return {x,y}; };
+    const chargers = [pick(), pick()];
+    const obstacles = new Set(); for(let i=0;i<13;i++){ const p = pick(); obstacles.add(key(p.x,p.y)); }
+    const danger = new Set();    for(let i=0;i<8;i++){ const p = pick(); danger.add(key(p.x,p.y)); }
+    const levels = ["critical","critical","urgent","urgent","normal","normal"];
+    const survivors = levels.map(lv => { const p = pick(); return { x:p.x, y:p.y, level:lv, picked:false, delivered:false }; });
+    const st = { seed, capacity, base, chargers, obstacles, danger, survivors,
+      robot:{...base}, battery:100, time:0, maxTime:160, carrying:[], score:0, deliveredCount:0, over:false, result:"" };
+    // بررسی دسترس‌پذیری همهٔ هدف‌ها از پایگاه
+    const seen = new Set([key(base.x, base.y)]); const q = [base];
+    while(q.length){ const c = q.shift(); for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=c.x+dx, ny=c.y+dy, k=key(nx,ny); if(inB(nx,ny) && !obstacles.has(k) && !seen.has(k)){ seen.add(k); q.push({x:nx,y:ny}); } } }
+    if(survivors.every(s=>seen.has(key(s.x,s.y))) && chargers.every(c=>seen.has(key(c.x,c.y)))) return st;
+  }
+  throw new Error("map generation failed");
+}
+
+/* دایکسترا از موقعیت ربات: هزینهٔ باتری (خطرناک=۳، یا بیشتر برای مسیر امن) + تعداد قدم */
+function dijkstra(st, dangerCost){
+  const dc = dangerCost === undefined ? 3 : dangerCost;
+  const dist = new Map(), cost = new Map(), prev = new Map();
+  const start = key(st.robot.x, st.robot.y);
+  dist.set(start,0); cost.set(start,0);
+  const pq = [[0,0,st.robot.x,st.robot.y]];
+  while(pq.length){
+    let bi=0; for(let i=1;i<pq.length;i++) if(pq[i][0]<pq[bi][0] || (pq[i][0]===pq[bi][0] && pq[i][1]<pq[bi][1])) bi=i;
+    const [c,d,x,y] = pq.splice(bi,1)[0]; const k = key(x,y);
+    if(c !== cost.get(k)) continue;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx=x+dx, ny=y+dy, nk=key(nx,ny);
+      if(!inB(nx,ny) || st.obstacles.has(nk)) continue;
+      const nc = c + (st.danger.has(nk) ? dc : 1), nd = d + 1;
+      if(cost.get(nk) === undefined || nc < cost.get(nk) || (nc === cost.get(nk) && nd < dist.get(nk))){
+        cost.set(nk,nc); dist.set(nk,nd); prev.set(nk,k); pq.push([nc,nd,nx,ny]);
+      }
+    }
+  }
+  return { dist, cost, prev };
+}
+function nextStepToward(st, dij, target){
+  const tk = key(target.x, target.y);
+  if(!dij.prev.has(tk)) return null;
+  let cur = tk; while(dij.prev.get(cur) !== key(st.robot.x, st.robot.y)) cur = dij.prev.get(cur);
+  return { x: cur % 12, y: Math.floor(cur / 12) };
+}
+
+/* ================= مشاهدهٔ ربات ================= */
+function observe(st){
+  const dij = dijkstra(st);
+  const alive = st.survivors.filter(s=>!s.picked && !s.delivered);
+  const dOf = s => dij.dist.get(key(s.x,s.y));
+  let nearest=null, nearestD=Infinity, crit=null, critD=Infinity;
+  for(const s of alive){ const d = dOf(s); if(d===undefined) continue;
+    if(d < nearestD){ nearestD=d; nearest=s; }
+    if(s.level==="critical" && d < critD){ critD=d; crit=s; } }
+  const baseD = dij.dist.get(key(st.base.x, st.base.y)) ?? Infinity;
+  const baseCost = dij.cost.get(key(st.base.x, st.base.y)) ?? Infinity;
+  let urg=null, urgD=Infinity;
+  for(const s of alive){ const d = dOf(s); if(d===undefined) continue; if(s.level==="urgent" && d < urgD){ urgD=d; urg=s; } }
+  let chargerD = Infinity;
+  for(const c of st.chargers){ const d = dij.dist.get(key(c.x,c.y)); if(d!==undefined && d < chargerD) chargerD = d; }
+  const critExists = alive.some(s=>s.level==="critical");
+  return { dij, alive, nearest, nearestD, crit, critD, critExists, urg, urgD, chargerD, baseD, baseCost,
+    battery: st.battery, carrying: st.carrying.length, capacity: st.capacity,
+    timeLeft: st.maxTime - st.time };
+}
+function evalCondition(rule, obs){
+  switch(rule.id){
+    case "full": return obs.carrying >= obs.capacity;
+    case "carryingAny": return obs.carrying > 0;
+    case "batteryBelow": return obs.battery < (rule.threshold ?? 30);
+    case "batteryAbove": return obs.battery > (rule.threshold ?? 30);
+    case "criticalNear": return !!(obs.crit && obs.critD <= 3);
+    case "criticalExists": return obs.critExists;
+    case "urgentNear": return !!(obs.urg && obs.urgD <= 3);
+    case "survivorNear": return !!(obs.nearest && obs.nearestD <= 3);
+    case "noSurvivorVisible": return !obs.nearest || obs.nearestD > 5;
+    case "baseNear": return obs.baseD <= 3;
+    case "baseFar": return obs.baseD > 5;
+    case "chargerNear": return obs.chargerD <= 3;
+    case "timeLow": return obs.timeLeft <= 30;
+    case "lowForReturn": return obs.battery < obs.baseCost + 4;
+  }
+  return false;
+}
+
+/* ================= اجرای یک قدم از یک اقدام کلان ================= */
+function stepEnv(st, actionId){
+  const info = { event:"", reward:-0.05, picked:null, deliveredNow:0 };
+  if(st.over) return info;
+  const obs = observe(st);
+  const origAction = actionId;
+  // اقدام‌های ترکیبی تازه به رفتار پایه ترجمه می‌شوند
+  if(actionId==="chargeSmart") actionId = obs.battery < 80 ? "toCharger" : "rescueNearest";
+  else if(actionId==="deliverPartial") actionId = st.carrying.length ? "toBase" : "search";
+  const onCharger = st.chargers.some(c=>c.x===st.robot.x && c.y===st.robot.y);
+  const atBase = st.robot.x===st.base.x && st.robot.y===st.base.y;
+  let target = null, wantPickup = null;
+
+  if(actionId==="rescueNearest" || actionId==="rescueUrgent" || actionId==="search" || origAction==="rescueSafe"){
+    if(st.carrying.length >= st.capacity){ target = st.base; info.event = "ظرفیت پر است؛ به سوی پایگاه"; }
+    else if(obs.alive.length){
+      let s;
+      if(actionId==="rescueUrgent"){ s = obs.alive.slice().sort((a,b)=> (POINTS[b.level]-POINTS[a.level]) || ((obs.dij.dist.get(key(a.x,a.y))??99) - (obs.dij.dist.get(key(b.x,b.y))??99)))[0]; }
+      else s = obs.nearest;
+      if(s){ if(s.x===st.robot.x && s.y===st.robot.y) wantPickup = s; else target = s; }
+    } else target = st.base;
+  }
+  else if(actionId==="toBase") target = st.base;
+  else if(actionId==="toCharger"){
+    if(onCharger && st.battery < 100){
+      st.battery = Math.min(100, st.battery + 10); st.time++;
+      info.event = "در حال شارژ… +۱۰٪ باتری"; info.reward += 0.1;
+      finishStep(st, info); return info;
+    }
+    let best=null, bd=Infinity;
+    for(const c of st.chargers){ const d = obs.dij.dist.get(key(c.x,c.y)); if(d!==undefined && d<bd){ bd=d; best=c; } }
+    target = best;
+  }
+
+  if(wantPickup){
+    st.time++; wantPickup.picked = true; st.carrying.push(wantPickup.level);
+    info.picked = wantPickup; info.event = "مصدوم " + LEVEL_NAME[wantPickup.level] + " سوار شد";
+    info.reward += 3 + (wantPickup.level==="critical" ? 2 : wantPickup.level==="urgent" ? 1 : 0);
+  } else if(target){
+    if(target.x===st.robot.x && target.y===st.robot.y){ st.time++; info.event = "در مقصد، منتظر ماند"; }
+    else {
+      const dijUse = origAction==="rescueSafe" ? dijkstra(st, 15) : obs.dij;
+      const ns = nextStepToward(st, dijUse, target);
+      if(ns){ st.robot = ns; st.battery -= st.danger.has(key(ns.x,ns.y)) ? 3 : 1; st.time++; info.event = "حرکت به سمت هدف"; }
+      else { st.time++; info.event = "مسیر بسته است؛ منتظر ماند"; }
+    }
+  } else { st.time++; info.event = "اقدامی ممکن نبود"; }
+
+  // تحویل در پایگاه
+  if(st.robot.x===st.base.x && st.robot.y===st.base.y && st.carrying.length){
+    let pts = 0; for(const lv of st.carrying){ pts += POINTS[lv]; const sv = st.survivors.find(s=>s.picked && !s.delivered && s.level===lv); if(sv) sv.delivered = true; }
+    // علامت‌گذاری دقیق تحویل‌شده‌ها
+    let n = st.carrying.length; for(const s of st.survivors){ if(n<=0) break; if(s.picked && !s.delivered){ s.delivered = true; n--; } }
+    st.score += pts; st.deliveredCount += st.carrying.length; info.deliveredNow = st.carrying.length;
+    info.event = faNum(st.carrying.length) + " مصدوم به پایگاه تحویل شد (+" + faNum(pts) + " امتیاز)";
+    info.reward += pts * 0.3; st.carrying = [];
+  }
+  finishStep(st, info);
+  return info;
+}
+function finishStep(st, info){
+  if(st.survivors.every(s=>s.delivered)){ st.over = true; st.result = "win"; info.reward += 15; return; }
+  const onCharger = st.chargers.some(c=>c.x===st.robot.x && c.y===st.robot.y);
+  if(st.battery <= 0 && !onCharger){ st.over = true; st.result = "battery"; info.reward -= 15; return; }
+  if(st.time >= st.maxTime){ st.over = true; st.result = "time"; info.reward -= 2; }
+}
+
+/* انتخاب اقدام از روی قانون‌های دانش‌آموز */
+function humanDecision(rules, st){
+  const obs = observe(st);
+  const evals = rules.map(r => ({ rule:r, match: evalCondition(r, obs) }));
+  const hit = evals.find(e=>e.match);
+  if(hit) return { obs, evals, ruleIndex: rules.indexOf(hit.rule), actionId: hit.rule.action, fallback:false };
+  const fb = st.carrying.length ? "toBase" : "search";
+  return { obs, evals, ruleIndex:-1, actionId: fb, fallback:true };
+}
+
+/* ================= وضعیت کلی بازی زنده ================= */
+let rules = [
+  { id:"full", action:"toBase" },
+  { id:"batteryBelow", threshold:30, action:"toCharger" },
+  { id:"criticalNear", action:"rescueUrgent" }
+];
+let mapSeed = 7;
+let game = genMap(mapSeed, 2);
+let playing = false, timer = null;
+let history = [];       // اسنپ‌شات‌های بازپخش
+let lastDecision = null;
+/* استراتژی‌های ذخیره‌شده در localStorage مرورگر می‌مانند تا با رفرش/بستن صفحه از بین نروند */
+const SAVED_KEY = "rescueMission.savedStrategies.v1";
+let savedStrategies = (function(){
+  try {
+    const raw = localStorage.getItem(SAVED_KEY);
+    if(!raw) return [];
+    const parsed = JSON.parse(raw);
+    if(!Array.isArray(parsed)) throw new Error("saved strategies is not an array");
+    return parsed.filter(s => s && typeof s.name === "string" && Array.isArray(s.rules));
+  } catch(e){
+    try { localStorage.removeItem(SAVED_KEY); } catch(_){}
+    return [];
+  }
+})();
+function persistSaved(){
+  try { localStorage.setItem(SAVED_KEY, JSON.stringify(savedStrategies)); } catch(e){ /* در حالت private یا پر بودن حافظه ممکن است ذخیره نشود */ }
+}
+
+function snapshot(dec){
+  return { robot:{...game.robot}, battery:game.battery, time:game.time, score:game.score,
+    deliveredCount: game.deliveredCount, carrying: game.carrying.slice(),
+    surv: game.survivors.map(s=>({ picked:s.picked, delivered:s.delivered })),
+    over: game.over, result: game.result, dec: dec || null };
+}
+function pushHistory(dec){ history.push(snapshot(dec)); }
+
+/* ================= رندر صفحه ================= */
+const SVG = {
+  robot: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="14" width="28" height="24" rx="6" fill="#e4572e"/><rect x="15" y="6" width="18" height="10" rx="4" fill="#095a6a"/><circle cx="19" cy="26" r="3.4" fill="#fff"/><circle cx="29" cy="26" r="3.4" fill="#fff"/><rect x="19" y="33" width="10" height="3" rx="1.5" fill="#fff"/><rect x="22" y="2" width="4" height="5" fill="#095a6a"/></svg>',
+  charger: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M27 4 L12 28 h9 L19 44 L36 19 h-10 z" fill="#b97a14"/></svg>',
+  base: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 22 L24 8 L40 22 V40 H8 Z" fill="#0b7285"/><rect x="20" y="29" width="8" height="11" fill="#fff"/></svg>',
+  person: c => '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="15" r="8" fill="'+c+'"/><path d="M10 42 c1-10 7-15 14-15 s13 5 14 15 z" fill="'+c+'"/></svg>'
+};
+const LEVEL_COLOR = { critical:"#d64545", urgent:"#e8a13a", normal:"#2f9e6e" };
+
+function renderBoard(view){
+  const board = $("board"); board.innerHTML = "";
+  const survAt = {};
+  game.survivors.forEach((s,i)=>{ const v = view ? view.surv[i] : { picked:s.picked, delivered:s.delivered }; if(!v.picked && !v.delivered) survAt[key(s.x,s.y)] = s; });
+  const robot = view ? view.robot : game.robot;
+  for(let y=0;y<12;y++) for(let x=0;x<12;x++){
+    const k = key(x,y); const cell = document.createElement("div"); cell.className = "cell";
+    if(game.obstacles.has(k)) cell.classList.add("obstacle");
+    else if(game.danger.has(k)) cell.classList.add("danger");
+    if(x===game.base.x && y===game.base.y){ cell.classList.add("base"); cell.innerHTML = SVG.base + '<span class="base-flag">پایگاه</span>'; }
+    else if(game.chargers.some(c=>c.x===x && c.y===y)){ cell.classList.add("charger"); cell.innerHTML = SVG.charger; }
+    else if(survAt[k]){ cell.innerHTML = '<span class="surv-dot '+(survAt[k].level==="critical"?"crit":"")+'">' + SVG.person(LEVEL_COLOR[survAt[k].level]) + "</span>"; }
+    if(robot.x===x && robot.y===y){ cell.classList.add("robot-cell"); cell.innerHTML = SVG.robot; }
+    board.appendChild(cell);
+  }
+}
+function renderHUD(view){
+  const g = view || game;
+  $("hudScore").textContent = faNum(g.score);
+  $("hudRescued").textContent = faNum(g.deliveredCount) + " از " + faNum(game.survivors.length);
+  $("hudCarry").textContent = faNum(g.carrying.length) + " از " + faNum(game.capacity);
+  $("hudTime").textContent = faNum(g.time) + " از " + faNum(game.maxTime);
+  $("hudBattTxt").textContent = faPct(Math.max(0,g.battery));
+  const fill = $("hudBatt"); fill.style.width = Math.max(0,g.battery) + "%";
+  fill.className = "batt-fill" + (g.battery<25 ? " low" : g.battery<50 ? " mid" : "");
+}
+function renderInspector(dec){
+  const obsList = $("obsList"), checkList = $("checkList"), chosen = $("chosenBox");
+  if(!dec){
+    obsList.innerHTML = '<li><span>وضعیت ربات</span><b>آمادهٔ شروع</b></li>';
+    checkList.innerHTML = ""; chosen.textContent = "";
+    document.querySelectorAll(".rule-card").forEach(c=>c.classList.remove("active"));
+    return;
+  }
+  const o = dec.obs;
+  const critTxt = o.crit ? faNum(o.critD) + " خانه" : "ندارد";
+  const nearTxt = o.nearest ? faNum(o.nearestD) + " خانه (" + LEVEL_NAME[o.nearest.level] + ")" : "مصدومی نمانده";
+  obsList.innerHTML =
+    '<li><span>باتری</span><b>' + faPct(o.battery) + '</b></li>' +
+    '<li><span>ظرفیت حمل</span><b>' + faNum(o.carrying) + " از " + faNum(o.capacity) + '</b></li>' +
+    '<li><span>نزدیک‌ترین مصدوم</span><b>' + nearTxt + '</b></li>' +
+    '<li><span>مصدوم بحرانی</span><b>' + critTxt + '</b></li>' +
+    '<li><span>فاصله تا پایگاه</span><b>' + faNum(o.baseD) + ' خانه (هزینهٔ باتری: ' + faNum(o.baseCost) + ')</b></li>' +
+    '<li><span>مصدوم فوری نزدیک</span><b>' + (o.urg ? faNum(o.urgD) + " خانه" : "ندارد") + '</b></li>' +
+    '<li><span>فاصله تا نزدیک‌ترین شارژر</span><b>' + (o.chargerD === Infinity ? "—" : faNum(o.chargerD) + " خانه") + '</b></li>' +
+    '<li><span>زمان</span><b>' + faNum(game.time) + ' (باقی‌مانده: ' + faNum(Math.max(0, o.timeLeft)) + ' قدم)</b></li>';
+  checkList.innerHTML = "";
+  dec.evals.forEach((e,i)=>{
+    const div = document.createElement("div");
+    let cls, badge;
+    if(dec.ruleIndex === i){ cls = "yes"; badge = "بله ← اجرا شد"; }
+    else if(dec.ruleIndex !== -1 && i > dec.ruleIndex){ cls = "skip"; badge = "نرسید"; }
+    else { cls = e.match ? "yes" : "no"; badge = e.match ? "بله" : "خیر"; }
+    if(dec.ruleIndex === -1){ cls = e.match ? "yes" : "no"; badge = e.match ? "بله" : "خیر"; }
+    div.className = "check " + cls;
+    div.innerHTML = '<span class="badge">' + badge + '</span><span><b>قانون ' + faNum(i+1) + ":</b> " + condLabel(e.rule) + "؟</span>";
+    checkList.appendChild(div);
+  });
+  chosen.textContent = dec.fallback
+    ? "هیچ قانونی برقرار نبود ← رفتار پیش‌فرض: " + actLabel(dec.actionId)
+    : "قانون " + faNum(dec.ruleIndex+1) + " فعال شد ← اقدام: " + actLabel(dec.actionId);
+  document.querySelectorAll(".rule-card").forEach((c,i)=> c.classList.toggle("active", i === dec.ruleIndex));
+  const log = $("decisionLog"); const li = document.createElement("li");
+  li.innerHTML = "<b>قدم " + faNum(game.time) + ":</b> " + (dec.fallback ? "پیش‌فرض" : "قانون " + faNum(dec.ruleIndex+1)) + " ← " + actLabel(dec.actionId) + (dec.event ? " — " + dec.event : "");
+  log.prepend(li); while(log.children.length > 40) log.lastChild.remove();
+}
+function renderMissionMsg(){
+  const m = $("missionMsg");
+  if(!game.over){ m.className = "mission-msg"; m.textContent = ""; return; }
+  if(game.result === "win"){ m.className = "mission-msg win"; m.textContent = "مأموریت کامل شد! همهٔ مصدومان نجات یافتند. امتیاز: " + faNum(game.score) + " — حالا استراتژی‌ات را عوض کن و دوباره امتحان کن؛ آیا می‌توانی با باتری و زمان کمتر هم موفق شوی؟"; }
+  else if(game.result === "battery"){ m.className = "mission-msg lose"; m.textContent = "باتری ربات تمام شد و مأموریت ناتمام ماند. در بازرس تصمیم قدم‌های آخر را ببین: آیا قانون شارژ باید اولویت بالاتری می‌داشت؟"; }
+  else { m.className = "mission-msg lose"; m.textContent = "زمان مأموریت تمام شد. مصدوم تحویل‌شده: " + faNum(game.deliveredCount) + " از " + faNum(game.survivors.length) + ". شاید اولویت‌بندی قانون‌ها نیاز به بازنگری دارد."; }
+}
+function renderAll(view){ renderBoard(view); renderHUD(view); }
+
+/* ================= حلقهٔ اجرا ================= */
+function doStep(){
+  if(game.over) { stopPlay(); return; }
+  const dec = humanDecision(rules, game);
+  const info = stepEnv(game, dec.actionId);
+  dec.event = info.event;
+  lastDecision = dec;
+  pushHistory(dec);
+  renderAll(); renderInspector(dec); renderMissionMsg();
+  $("replayBtn").disabled = history.length < 2;
+  if(game.over) stopPlay();
+}
+function stopPlay(){ playing = false; if(timer){ clearInterval(timer); timer = null; } $("playBtn").textContent = "▶ اجرای آزمایشی"; }
+function startPlay(){
+  if(game.over) return;
+  playing = true; $("playBtn").textContent = "⏸ توقف";
+  timer = setInterval(doStep, Number($("speedSel").value));
+}
+$("playBtn").addEventListener("click", ()=> playing ? stopPlay() : startPlay());
+$("stepBtn").addEventListener("click", ()=>{ stopPlay(); doStep(); });
+$("speedSel").addEventListener("change", ()=>{ if(playing){ stopPlay(); startPlay(); } });
+function resetMission(newSeed){
+  stopPlay(); exitReplay();
+  if(newSeed !== undefined) mapSeed = newSeed;
+  game = genMap(mapSeed, 2);
+  history = []; lastDecision = null;
+  $("decisionLog").innerHTML = "";
+  pushHistory(null);
+  renderAll(); renderInspector(null); renderMissionMsg();
+  $("replayBtn").disabled = true;
+}
+$("resetBtn").addEventListener("click", ()=> resetMission());
+$("newMapBtn").addEventListener("click", ()=> resetMission(Math.floor(Math.random()*90000)+10));
+
+/* ================= بازپخش ================= */
+let replayMode = false, rpIdx = 0, rpTimer = null;
+function enterReplay(){
+  if(history.length < 2) return;
+  stopPlay(); replayMode = true; rpIdx = 0;
+  $("replayBar").classList.add("on");
+  $("rpSlider").max = history.length - 1;
+  showReplay();
+}
+function exitReplay(){
+  replayMode = false; if(rpTimer){ clearInterval(rpTimer); rpTimer = null; }
+  $("replayBar").classList.remove("on"); $("rpPlay").textContent = "پخش";
+  if(game) renderAll();
+}
+function showReplay(){
+  const snap = history[rpIdx]; if(!snap) return;
+  renderAll(snap);
+  $("rpSlider").value = rpIdx;
+  $("replayInfo").textContent = "قدم " + faNum(rpIdx) + " از " + faNum(history.length-1) + (snap.dec ? " — " + (snap.dec.fallback ? "رفتار پیش‌فرض" : "قانون " + faNum(snap.dec.ruleIndex+1)) + ": " + actLabel(snap.dec.actionId) : " — شروع مأموریت");
+  if(snap.dec) renderInspector(snap.dec); else renderInspector(null);
+}
+$("replayBtn").addEventListener("click", enterReplay);
+$("replayExit").addEventListener("click", ()=>{ exitReplay(); renderInspector(lastDecision); renderMissionMsg(); });
+$("rpSlider").addEventListener("input", e=>{ rpIdx = Number(e.target.value); showReplay(); });
+$("rpPrev").addEventListener("click", ()=>{ rpIdx = Math.max(0, rpIdx-1); showReplay(); });
+$("rpNext").addEventListener("click", ()=>{ rpIdx = Math.min(history.length-1, rpIdx+1); showReplay(); });
+$("rpPlay").addEventListener("click", ()=>{
+  if(rpTimer){ clearInterval(rpTimer); rpTimer = null; $("rpPlay").textContent = "پخش"; return; }
+  if(rpIdx >= history.length-1) rpIdx = 0;
+  $("rpPlay").textContent = "توقف";
+  rpTimer = setInterval(()=>{ rpIdx++; if(rpIdx >= history.length-1){ rpIdx = history.length-1; clearInterval(rpTimer); rpTimer = null; $("rpPlay").textContent = "پخش"; } showReplay(); }, 420);
+});
+
+/* ================= سازندهٔ استراتژی ================= */
+function renderRules(){
+  const list = $("rulesList"); list.innerHTML = "";
+  rules.forEach((r, i)=>{
+    const card = document.createElement("div"); card.className = "rule-card";
+    const condOpts = CONDITIONS.map(c=>'<option value="'+c.id+'"'+(c.id===r.id?" selected":"")+">"+c.label+"</option>").join("");
+    const actOpts = ACTIONS.map(a=>'<option value="'+a.id+'"'+(a.id===r.action?" selected":"")+">"+a.label+"</option>").join("");
+    const cond = CONDITIONS.find(c=>c.id===r.id);
+    let thresh = "";
+    if(cond.threshold){
+      thresh = '<div class="thresh-row"><span>حد باتری:</span><select data-thresh="'+i+'" aria-label="حد باتری">' +
+        [20,30,50,70].map(t=>'<option value="'+t+'"'+(t===(r.threshold??30)?" selected":"")+">"+faNum(t)+"٪</option>").join("") + "</select></div>";
+    }
+    card.innerHTML =
+      '<div class="rule-head"><span class="prio">' + faNum(i+1) + '</span><span class="rtitle">قانون ' + faNum(i+1) + '</span>' +
+      '<span class="rule-tools">' +
+      '<button class="icon-btn" data-up="'+i+'" type="button" aria-label="بالا بردن اولویت" '+(i===0?"disabled":"")+'>↑</button>' +
+      '<button class="icon-btn" data-down="'+i+'" type="button" aria-label="پایین بردن اولویت" '+(i===rules.length-1?"disabled":"")+'>↓</button>' +
+      '<button class="icon-btn del" data-del="'+i+'" type="button" aria-label="حذف قانون">✕</button></span></div>' +
+      '<div class="ifthen"><span class="tag if">اگر IF</span><select data-cond="'+i+'" aria-label="شرط قانون ' + faNum(i+1) + '">' + condOpts + '</select>' + thresh +
+      '<span class="tag then">آنگاه THEN</span><select data-act="'+i+'" aria-label="اقدام قانون ' + faNum(i+1) + '">' + actOpts + '</select></div>';
+    list.appendChild(card);
+  });
+  list.querySelectorAll("[data-cond]").forEach(s=> s.addEventListener("change", e=>{ const i = Number(e.target.dataset.cond); rules[i].id = e.target.value; if((e.target.value==="batteryBelow" || e.target.value==="batteryAbove") && !rules[i].threshold) rules[i].threshold = 30; renderRules(); validate(false); }));
+  list.querySelectorAll("[data-act]").forEach(s=> s.addEventListener("change", e=>{ rules[Number(e.target.dataset.act)].action = e.target.value; validate(false); }));
+  list.querySelectorAll("[data-thresh]").forEach(s=> s.addEventListener("change", e=>{ rules[Number(e.target.dataset.thresh)].threshold = Number(e.target.value); validate(false); }));
+  list.querySelectorAll("[data-up]").forEach(b=> b.addEventListener("click", ()=>{ const i = Number(b.dataset.up); [rules[i-1], rules[i]] = [rules[i], rules[i-1]]; renderRules(); validate(false); }));
+  list.querySelectorAll("[data-down]").forEach(b=> b.addEventListener("click", ()=>{ const i = Number(b.dataset.down); [rules[i+1], rules[i]] = [rules[i], rules[i+1]]; renderRules(); validate(false); }));
+  list.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=>{ rules.splice(Number(b.dataset.del),1); renderRules(); validate(false); }));
+  $("ruleCount").innerHTML = faNum(rules.length) + " قانون تعریف شده — " + (rules.length ? "<b>استراتژی آماده است</b>" : "هنوز قانونی نداری؛ ربات فقط با رفتار پیش‌فرض کار می‌کند.");
+}
+function validate(showOk){
+  const warns = [];
+  if(!rules.length) warns.push("هیچ قانونی تعریف نشده است؛ ربات در همهٔ قدم‌ها از رفتار پیش‌فرض استفاده می‌کند.");
+  const seen = new Set();
+  rules.forEach((r,i)=>{
+    const k = r.id + ":" + (r.threshold ?? "");
+    if(seen.has(k)) warns.push("قانون " + faNum(i+1) + " شرط تکراری دارد؛ قانون بالاتر همیشه زودتر اجرا می‌شود و این قانون شاید هیچ‌وقت نوبتش نرسد.");
+    seen.add(k);
+    if(r.id === "full" && (r.action === "rescueNearest" || r.action === "rescueUrgent" || r.action === "rescueSafe" || r.action === "search"))
+      warns.push("قانون " + faNum(i+1) + " ناسازگار است: وقتی ظرفیت پر است، ربات نمی‌تواند مصدوم دیگری بردارد؛ اقدام‌هایی مثل «بازگشت به پایگاه» منطقی‌ترند.");
+    if(r.id === "batteryBelow" && r.action !== "toCharger" && (r.threshold ?? 30) <= 30)
+      warns.push("قانون " + faNum(i+1) + ": باتری خیلی کم است ولی اقدام، رفتن به شارژر نیست؛ ربات ممکن است وسط راه خاموش شود.");
+  });
+  if(!rules.some(r=>r.action === "toBase")) warns.push("هیچ قانونی ربات را به پایگاه برنمی‌گرداند (مگر قانون «ظرفیت پر» را داشته باشی)؛ مصدومان فقط وقتی امتیاز می‌گیرند که به پایگاه تحویل شوند.");
+  $("warnBox").innerHTML = warns.length ? warns.map(w=>"⚠ " + w).join("<br>") : (showOk ? "✓ استراتژی‌ات از نظر منطقی سالم است. حالا اجرایش کن و نتیجه را ببین!" : "");
+  return warns;
+}
+$("addRule").addEventListener("click", ()=>{ rules.push({ id:"survivorNear", action:"rescueNearest" }); renderRules(); validate(false); });
+$("checkStrategy").addEventListener("click", ()=> validate(true));
+$("presetA").addEventListener("click", ()=>{ rules = [ { id:"criticalNear", action:"rescueUrgent" }, { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"full", action:"toBase" } ]; renderRules(); validate(false); });
+$("presetB").addEventListener("click", ()=>{ rules = [ { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"full", action:"toBase" }, { id:"criticalNear", action:"rescueUrgent" } ]; renderRules(); validate(false); });
+$("presetC").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"criticalExists", action:"rescueUrgent" }, { id:"survivorNear", action:"rescueNearest" }, { id:"batteryBelow", threshold:20, action:"toCharger" } ]; renderRules(); validate(false); });
+$("presetD").addEventListener("click", ()=>{ rules = [ { id:"batteryBelow", threshold:50, action:"toCharger" }, { id:"lowForReturn", action:"toCharger" }, { id:"full", action:"toBase" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"survivorNear", action:"rescueNearest" } ]; renderRules(); validate(false); });
+$("presetE").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"carryingAny", action:"deliverPartial" }, { id:"batteryAbove", threshold:80, action:"rescueNearest" }, { id:"criticalNear", action:"rescueUrgent" }, { id:"batteryBelow", threshold:30, action:"chargeSmart" } ]; renderRules(); validate(false); });
+$("presetF").addEventListener("click", ()=>{ rules = [ { id:"full", action:"toBase" }, { id:"batteryBelow", threshold:30, action:"toCharger" }, { id:"criticalExists", action:"rescueSafe" }, { id:"survivorNear", action:"rescueSafe" } ]; renderRules(); validate(false); });
+$("saveStrat").addEventListener("click", ()=>{
+  const name = $("stratName").value.trim() || ("استراتژی " + faNum(savedStrategies.length+1));
+  savedStrategies.push({ name, rules: JSON.parse(JSON.stringify(rules)) });
+  persistSaved();
+  $("stratName").value = ""; renderSaved();
+});
+function renderSaved(){
+  const box = $("savedList"); box.innerHTML = "";
+  savedStrategies.forEach((s,i)=>{
+    const div = document.createElement("div"); div.className = "saved-item";
+    div.innerHTML = '<span class="nm"></span><span class="cnt">' + faNum(s.rules.length) + ' قانون</span><span class="sp"></span>' +
+      '<button class="btn small" type="button">بارگذاری</button><button class="icon-btn del" type="button" aria-label="حذف استراتژی ذخیره‌شده">✕</button>';
+    div.querySelector(".nm").textContent = s.name;
+    div.querySelector(".btn").addEventListener("click", ()=>{ rules = JSON.parse(JSON.stringify(s.rules)); renderRules(); validate(false); });
+    div.querySelector(".del").addEventListener("click", ()=>{ savedStrategies.splice(i,1); persistSaved(); renderSaved(); });
+    box.appendChild(div);
+  });
+}
+
+/* ================= دانلود فایل کامل برای اجرای لوکال ================= */
+$("downloadBtn").addEventListener("click", ()=>{
+  const html = "<!doctype html>\n" + document.documentElement.outerHTML;
+  const blob = new Blob([html], { type:"text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "rescue-mission.html";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=> URL.revokeObjectURL(url), 4000);
+  $("downloadNote").innerHTML = "<b>فایل دانلود شد.</b> کافی است روی آن دوبار کلیک کنی تا در مرورگر باز شود — بدون سرور و بدون نصب چیزی.";
+});
+
+/* ================= Q-Learning ================= */
+const QACT = ["rescueNearest","rescueUrgent","toBase","toCharger","search"];
+let Q = {}, qTrained = false, qEpisodes = 0, trainCurve = [];
+const EPS0 = 0.35, ALPHA = 0.15, GAMMA = 0.95;
+function qStateKey(obs, st){
+  const b = obs.battery < 30 ? 0 : obs.battery < 60 ? 1 : 2;
+  const carry = obs.carrying === 0 ? 0 : obs.carrying >= obs.capacity ? 2 : 1;
+  return [b, carry, obs.crit && obs.critD<=3 ? 1:0, obs.nearest && obs.nearestD<=3 ? 1:0, obs.baseD<=3 ? 1:0, obs.battery < obs.baseCost+4 ? 1:0].join("|");
+}
+function qRow(key){ if(!Q[key]) Q[key] = [0,0,0,0,0]; return Q[key]; }
+function qChoose(st, epsilon){
+  const obs = observe(st); const row = qRow(qStateKey(obs, st));
+  if(Math.random() < epsilon) return Math.floor(Math.random()*QACT.length);
+  let bi = 0; for(let i=1;i<row.length;i++) if(row[i] > row[bi]) bi = i;
+  return bi;
+}
+function runEpisode(agentFn, seed, capacity, train, epsilon){
+  const st = genMap(seed, capacity);
+  let totalReward = 0, guard = 0;
+  while(!st.over && guard++ < 400){
+    if(train){
+      const obsBefore = observe(st); const keyBefore = qStateKey(obsBefore, st);
+      const ai = qChoose(st, epsilon);
+      const info = stepEnv(st, QACT[ai]);
+      totalReward += info.reward;
+      const obsAfter = observe(st); const rowAfter = qRow(qStateKey(obsAfter, st));
+      const maxNext = st.over ? 0 : Math.max.apply(null, rowAfter);
+      const row = qRow(keyBefore);
+      row[ai] += ALPHA * (info.reward + GAMMA * maxNext - row[ai]);
+    } else {
+      const info = stepEnv(st, agentFn(st));
+      totalReward += info.reward;
+    }
+  }
+  return { score: st.score, rescued: st.deliveredCount, total: st.survivors.length, win: st.result==="win", battery: Math.max(0, st.battery), time: st.time, reward: totalReward };
+}
+function trainQL(episodes, capacity, done){
+  let ep = 0, windowReward = 0;
+  $("trainBtn").disabled = true; $("finetuneBtn").disabled = true;
+  function chunk(){
+    const t0 = Date.now();
+    while(ep < episodes && Date.now() - t0 < 40){
+      const eps = Math.max(0.03, EPS0 * Math.pow(0.995, qEpisodes));
+      const r = runEpisode(null, 31000 + qEpisodes*3 + Math.floor(Math.random()*2), capacity, true, eps);
+      qEpisodes++; ep++; windowReward += r.reward;
+      if(qEpisodes % 25 === 0){ trainCurve.push(windowReward/25); windowReward = 0; if(trainCurve.length>40) trainCurve.shift(); drawCurve(); }
+      $("trainProg").style.width = Math.round(ep/episodes*100) + "%";
+      $("trainInfo").textContent = "در حال آموزش… مأموریت تمرینی " + faNum(qEpisodes) + " — نرخ کاوش (ε): " + faNum(Math.round(Math.max(0.03, EPS0*Math.pow(0.995,qEpisodes))*100)) + "٪";
+    }
+    if(ep < episodes) setTimeout(chunk, 0);
+    else {
+      qTrained = true;
+      $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول Q. حالا مقایسه را اجرا کن.";
+      $("trainBtn").disabled = false; $("finetuneBtn").disabled = false; $("evalBtn").disabled = false;
+      if(done) done();
+    }
+  }
+  chunk();
+}
+function drawCurve(){
+  const svg = $("trainChart"); if(trainCurve.length < 2){ svg.innerHTML = ""; return; }
+  const min = Math.min.apply(null, trainCurve), max = Math.max.apply(null, trainCurve), rng = (max-min) || 1;
+  const pts = trainCurve.map((v,i)=> (i/(trainCurve.length-1)*296+2).toFixed(1) + "," + (84 - (v-min)/rng*76).toFixed(1)).join(" ");
+  svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="#0b7285" stroke-width="2.5"/>' +
+    '<text x="4" y="12" font-size="9" fill="currentColor" opacity=".6">میانگین پاداش در هر ۲۵ مأموریت تمرینی</text>';
+}
+$("trainBtn").addEventListener("click", ()=> trainQL(400, Number($("capSel").value) || 2));
+$("finetuneBtn").addEventListener("click", ()=>{
+  const cap = Number($("capSel").value);
+  $("evalNote").textContent = "عامل یادگیرنده دارد در محیط جدید (ظرفیت " + faNum(cap) + " نفر) دوباره تمرین می‌کند…";
+  trainQL(200, cap, ()=> evaluate(true));
+});
+
+/* ================= ارزیابی و مقایسه ================= */
+function evalAgent(agentFn, capacity){
+  let agg = { score:0, rescued:0, win:0, battery:0, time:0 }; const N = 30;
+  for(let i=0;i<N;i++){ const r = runEpisode(agentFn, 5000 + i, capacity, false, 0); agg.score += r.score; agg.rescued += r.rescued; agg.win += r.win?1:0; agg.battery += r.battery; agg.time += r.time; }
+  return { score: agg.score/N, rescued: agg.rescued/N, winRate: agg.win/N*100, battery: agg.battery/N, time: agg.time/N };
+}
+function evaluate(afterFinetune){
+  if(!qTrained){ $("evalNote").textContent = "اول عامل یادگیرنده را آموزش بده."; return; }
+  const cap = Number($("capSel").value);
+  const humanRules = JSON.parse(JSON.stringify(rules));
+  const human = evalAgent(st => humanDecision(humanRules, st).actionId, cap);
+  const rl = evalAgent(st => QACT[qChoose(st, 0)], cap);
+  const rows = [
+    { name: "استراتژی تو", color: "var(--orange)", r: human },
+    { name: afterFinetune ? "عامل یادگیرنده (بعد از یادگیری دوباره)" : "عامل یادگیرنده (Q-Learning)", color: "var(--teal)", r: rl }
+  ];
+  const maxScore = Math.max.apply(null, rows.map(x=>x.r.score)) || 1;
+  let html = '<table class="results"><tr><th>عامل</th><th>میانگین امتیاز</th><th>مصدوم نجات‌یافته (از ۶)</th><th>تکمیل مأموریت</th><th>باتری باقی‌مانده</th><th>زمان مصرفی</th></tr>';
+  for(const row of rows){
+    html += "<tr><td>" + row.name + "</td><td>" + faNum(row.r.score.toFixed(1)) + "</td><td>" + faNum(row.r.rescued.toFixed(1)) + "</td><td>" + faPct(row.r.winRate) + "</td><td>" + faPct(row.r.battery) + "</td><td>" + faNum(Math.round(row.r.time)) + "</td></tr>";
+  }
+  html += "</table>";
+  html += '<div class="bars">' + rows.map(row =>
+    '<div class="bar-row"><span>' + row.name + '</span><div class="bar-track"><div class="bar-fill" style="width:' + Math.round(row.r.score/maxScore*100) + '%; background:' + row.color + '"></div></div><b>' + faNum(row.r.score.toFixed(1)) + "</b></div>").join("") + "</div>";
+  html += '<p class="note" style="margin-top:10px">محیط آزمایش: ظرفیت حمل ' + faNum(cap) + ' نفر — هر دو عامل دقیقاً روی همان ۳۰ نقشه (بذرهای یکسان) اجرا شدند.</p>';
+  $("evalOut").innerHTML = html;
+  $("evalNote").textContent = cap === 1
+    ? "ظرفیت حمل حالا ۱ نفر است: ربات باید مدام به پایگاه برگردد. اگر امتیازها افت کرده‌اند، تعجب نکن — استراتژی‌ای که برای ظرفیت ۲ عالی بود، شاید اینجا دیگر بهترین نباشد. دکمهٔ «یادگیری دوباره» را بزن و تفاوت را ببین."
+    : "نتیجه را ببین و از خودت بپرس: قانون‌های من کجا از ربات یادگیرنده بهترند و کجا بدتر؟ بعد قانون‌ها را اصلاح کن و مقایسه را تکرار کن.";
+}
+$("evalBtn").addEventListener("click", ()=> evaluate(false));
+
+/* ================= شروع ================= */
+renderRules();
+renderSaved();
+resetMission(7);
+validate(false);
+</script>
+</body>
+</html>
