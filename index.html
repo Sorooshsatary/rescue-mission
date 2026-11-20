@@ -205,14 +205,22 @@
   @media (max-width:560px){ .admin-grid{ grid-template-columns:1fr; } }
   .admin-field label{ display:block; font-size:13px; font-weight:700; margin-bottom:3px; }
   .admin-field .hint{ font-size:11.5px; color:var(--muted); display:block; }
-  .admin-box input[type="number"], .admin-box input[type="text"], .admin-box input[type="password"]{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; }
-  .admin-login-fields{ display:grid; gap:10px; margin-bottom:4px; }
+  .admin-box input[type="number"], .admin-box input[type="text"]{ width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:6px 10px; }
+  .toggle-row{ display:flex; align-items:flex-start; gap:10px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; cursor:pointer; margin-bottom:6px; }
+  .toggle-row input[type="checkbox"]{ width:22px; height:22px; flex:none; margin-top:3px; accent-color:var(--teal); cursor:pointer; }
+  .toggle-row .toggle-txt b{ display:block; font-size:14.5px; }
+  .toggle-row .toggle-txt small{ display:block; color:var(--muted); font-size:12.5px; line-height:1.8; }
   .admin-box input:focus{ outline:2px solid var(--teal); outline-offset:1px; }
   .admin-sec{ font-size:15px; font-weight:800; margin:18px 0 8px; color:var(--teal-dark); border-top:1px dashed var(--line); padding-top:12px; }
   .admin-sec:first-of-type{ border-top:none; padding-top:0; margin-top:4px; }
   .admin-err{ color:var(--red); font-size:13.5px; font-weight:700; min-height:1.2em; margin:6px 0 0; }
   .admin-ok{ color:var(--green); font-size:13.5px; font-weight:700; margin:8px 0 0; }
   .admin-ok:empty, .admin-err:empty{ min-height:0; }
+  .admin-preset-card{ background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
+  .admin-preset-head{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .admin-preset-head .nm{ font-weight:800; font-size:15px; }
+  .admin-preset-head .sp{ flex:1; }
+  .admin-preset-sum{ font-size:12.5px; color:var(--muted); margin-top:4px; line-height:1.9; }
 </style>
 </head>
 <body>
@@ -236,7 +244,7 @@
       <h2>سازندهٔ استراتژی</h2>
       <p class="sub">ربات در هر قدم قانون‌ها را از بالا به پایین می‌خواند و <b>اولین قانون برقرار</b> را اجرا می‌کند. پس ترتیب، یعنی اولویت.</p>
 
-      <div class="preset-row">
+      <div class="preset-row" id="presetRow">
         <button class="preset" id="presetA" type="button"><b>استراتژی ۱ — نجات‌محور</b><small>اول نجات بحرانی، بعد شارژ، بعد بازگشت</small></button>
         <button class="preset" id="presetB" type="button"><b>استراتژی ۲ — ایمنی‌محور</b><small>اول شارژ، بعد بازگشت، بعد نجات بحرانی</small></button>
         <button class="preset" id="presetC" type="button"><b>استراتژی ۳ — امتیاز و سرعت</b><small>شکار مداوم مصدوم؛ شارژ فقط وقتی باتری واقعاً کم است</small></button>
@@ -245,7 +253,7 @@
         <button class="preset" id="presetF" type="button"><b>استراتژی ۶ — مسیر امن</b><small>دوری از زمین خطرناک با مسیر امن، حتی اگر راه طولانی‌تر شود</small></button>
         <button class="preset" id="presetG" type="button" style="grid-column:1 / -1; border-color:var(--orange); background:color-mix(in srgb, var(--orange) 10%, var(--panel2))"><b>🏆 استراتژی قهرمان — رقیب عامل یادگیرنده</b><small>۵ قانون بدون آستانهٔ باتری: پر→پایگاه، بحرانی نزدیک→بحرانی‌ترین، بحرانی در نقشه→مسیر امن، فوری نزدیک→بحرانی‌ترین، نزدیک‌ترین≤۳→نزدیک‌ترین</small></button>
       </div>
-      <p class="note" style="margin:-4px 0 12px">هفت استراتژی آماده فقط نقطهٔ شروع‌اند: شرط‌ها و اقدام‌های تازه‌ای هم اضافه شده (مثل «مصدوم بحرانی هنوز در نقشه هست»، «باتری بالاست»، «شارژ هوشمند» و «نجات از مسیر امن») تا ترکیب‌های خیلی بیشتری بسازی و نتیجه‌شان را با هم مقایسه کنی. «استراتژی قهرمان» برای رقابت مستقیم با عامل یادگیرنده طراحی شده و هیچ قانون شارژ یا آستانهٔ باتری ندارد.</p>
+      <p class="note" id="presetNote" style="margin:-4px 0 12px">هفت استراتژی آماده فقط نقطهٔ شروع‌اند: شرط‌ها و اقدام‌های تازه‌ای هم اضافه شده (مثل «مصدوم بحرانی هنوز در نقشه هست»، «باتری بالاست»، «شارژ هوشمند» و «نجات از مسیر امن») تا ترکیب‌های خیلی بیشتری بسازی و نتیجه‌شان را با هم مقایسه کنی. «استراتژی قهرمان» برای رقابت مستقیم با عامل یادگیرنده طراحی شده و هیچ قانون شارژ یا آستانهٔ باتری ندارد.</p>
 
       <div id="rulesList"></div>
 
@@ -394,37 +402,31 @@
     <button class="btn primary" id="downloadBtn" type="button" style="font-size:16px; padding:12px 26px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M12 3v11"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg> دانلود فایل کامل بازی</button>
   </div>
 
-  <!-- ===== پنل ادمین (ورود با رمز، پارامترهای محلی) ===== -->
+  <!-- ===== پنل ادمین (پارامترهای محلی) ===== -->
   <div class="admin-overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-label="پنل ادمین">
     <div class="admin-box">
-      <div id="adminLogin">
-        <h2>پنل ادمین</h2>
-        <p class="sub">برای تغییر پارامترهای بازی باید وارد شوی. ورود فقط برای همین جلسه معتبر است و با بستن صفحه از بین می‌رود.</p>
-        <div class="admin-login-fields">
-          <div class="admin-field">
-            <label for="adminUser">نام کاربری</label>
-            <input type="text" id="adminUser" autocomplete="username" />
-          </div>
-          <div class="admin-field">
-            <label for="adminPass">رمز عبور</label>
-            <input type="password" id="adminPass" autocomplete="current-password" />
-          </div>
-        </div>
-        <p class="admin-err" id="adminLoginErr"></p>
-        <div class="row" style="margin-top:12px">
-          <button class="btn primary" id="adminLoginBtn" type="button">ورود</button>
-          <button class="btn" id="adminLoginClose" type="button">بستن</button>
-        </div>
-      </div>
-      <div id="adminPanel" hidden>
+      <div id="adminPanel">
         <h2>پنل ادمین — پارامترها</h2>
         <p class="sub">این‌ها تنظیمات محلی‌اند و فقط در همین مرورگر ذخیره می‌شوند. این مقادیر روی محیط بازی، امتیازها و آموزش عامل یادگیرنده اثر می‌گذارند. با زدن «اعمال و ذخیره»، مأموریت جاری با پارامترهای تازه از اول شروع می‌شود. تغییر پارامترهای یادگیری، از آموزش بعدی اعمال می‌شود.</p>
+        <div class="admin-sec">نمایش در سازندهٔ استراتژی</div>
+        <label class="toggle-row" for="showPresetsToggle">
+          <input type="checkbox" id="showPresetsToggle" />
+          <span class="toggle-txt"><b>نمایش استراتژی‌های آماده</b><small>وقتی خاموش است، کارت‌های استراتژی‌های آماده (استراتژی ۱ تا ۶ و استراتژی قهرمان) در سازندهٔ استراتژی کاملاً مخفی‌اند و دانش‌آموز آن‌ها را نمی‌بیند. این انتخاب در همین مرورگر می‌ماند.</small></span>
+        </label>
         <div id="adminFields"></div>
+        <div class="admin-sec">تنظیم‌های ذخیره‌شدهٔ من</div>
+        <p class="sub">عددهای بالا را هرطور می‌خواهی عوض کن، یک اسم بده و «ذخیرهٔ تنظیم فعلی» را بزن تا همان ترکیب پارامترها ذخیره شود. بعداً با دکمهٔ «اعمال» هر تنظیم، دقیقاً همان عددها برمی‌گردند. می‌توانی چند تنظیم ذخیره کنی؛ همه در همین مرورگر می‌مانند و بعد از بستن و باز کردن صفحه هم هستند.</p>
+        <div class="row" style="margin-bottom:10px">
+          <input type="text" id="adminPresetName" placeholder="نام تنظیم، مثلاً «تنظیم ۱»" aria-label="نام تنظیم" style="flex:1; min-width:160px" />
+          <button class="btn small primary" id="adminPresetSave" type="button">ذخیرهٔ تنظیم فعلی</button>
+        </div>
+        <div id="adminPresetList"></div>
+        <p class="note" style="margin:4px 0 0">«بازنشانی تنظیمات» فقط پارامترهای فعلی را به مقدارهای پیش‌فرض بازی برمی‌گرداند و تنظیم‌های ذخیره‌شده‌ات را پاک نمی‌کند.</p>
         <p class="admin-err" id="adminPanelErr"></p>
         <p class="admin-ok" id="adminOk"></p>
         <div class="row" style="margin-top:12px">
           <button class="btn primary" id="adminApply" type="button">اعمال و ذخیره</button>
-          <button class="btn" id="adminDefaults" type="button">بازنشانی به پیش‌فرض‌ها</button>
+          <button class="btn" id="adminDefaults" type="button">بازنشانی تنظیمات</button>
           <button class="btn" id="adminClose" type="button">بستن پنل</button>
         </div>
       </div>
@@ -1486,30 +1488,127 @@ $("scenarioReset").addEventListener("click", ()=>{
   scenarioMsg("همهٔ تنظیم‌ها بازنشانی شد: ویرایش‌های سناریوهای اصلی و همهٔ تنظیم‌های ذخیره‌شده پاک شدند و همان ۶ سناریوی پیش‌فرض برگشتند.");
 });
 
-/* ================= پنل ادمین (ورود با رمز؛ ورود فقط برای همین جلسه در sessionStorage) ================= */
-const ADMIN_SESSION_KEY = "rescueMission.adminAuthed.v1";
-function isAdminAuthed(){ try { return sessionStorage.getItem(ADMIN_SESSION_KEY) === "1"; } catch(e){ return false; } }
-function setAdminAuthed(){ try { sessionStorage.setItem(ADMIN_SESSION_KEY, "1"); } catch(e){} }
-function showAdminLogin(){
-  $("adminLogin").hidden = false; $("adminPanel").hidden = true;
-  $("adminLoginErr").textContent = "";
+/* ================= نمایش استراتژی‌های آماده (کلید پنل ادمین؛ پیش‌فرض خاموش، در localStorage) ================= */
+const SHOW_PRESETS_KEY = "rescueMission.showPresets.v1";
+let showPresets = false;
+try { showPresets = localStorage.getItem(SHOW_PRESETS_KEY) === "1"; } catch(e){}
+function applyPresetVisibility(){
+  const row = $("presetRow"), note = $("presetNote"), tgl = $("showPresetsToggle");
+  if(row) row.style.display = showPresets ? "" : "none";
+  if(note) note.style.display = showPresets ? "" : "none";
+  if(tgl) tgl.checked = showPresets;
 }
+function setShowPresets(v){
+  showPresets = !!v;
+  try { localStorage.setItem(SHOW_PRESETS_KEY, showPresets ? "1" : "0"); } catch(e){}
+  applyPresetVisibility();
+}
+
+/* ================= پنل ادمین (مستقیم باز می‌شود) ================= */
 function showAdminPanel(){
-  $("adminLogin").hidden = true; $("adminPanel").hidden = false;
   $("adminOk").textContent = ""; $("adminPanelErr").textContent = "";
   buildAdminFields();
+  renderAdminPresets();
+  applyPresetVisibility();
 }
-function attemptAdminLogin(){
-  const u = $("adminUser").value.trim();
-  const p = $("adminPass").value;
-  if(u === "admin" && p === "123"){
-    setAdminAuthed();
-    $("adminPass").value = "";
-    $("adminLoginErr").textContent = "";
-    showAdminPanel();
-  } else {
-    $("adminLoginErr").textContent = "نام کاربری یا رمز عبور اشتباه است.";
+/* ---------- تنظیم‌های ذخیره‌شدهٔ پنل ادمین (مثل پنل سناریوها؛ در localStorage می‌مانند) ---------- */
+const ADMIN_PRESETS_KEY = "rescueMission.adminPresets.v1";
+function sanitizeAdminPreset(p){
+  if(!p || typeof p !== "object" || !p.params || typeof p.params !== "object") return null;
+  const name = typeof p.name === "string" && p.name.trim() ? p.name.trim().slice(0, 60) : "";
+  if(!name) return null;
+  return { name, params: sanitizeParams(p.params) };
+}
+let adminPresets = (function(){
+  try {
+    const raw = JSON.parse(localStorage.getItem(ADMIN_PRESETS_KEY) || "null");
+    if(!Array.isArray(raw)) return [];
+    return raw.map(sanitizeAdminPreset).filter(Boolean);
+  } catch(e){ return []; }
+})();
+function persistAdminPresets(){ try { localStorage.setItem(ADMIN_PRESETS_KEY, JSON.stringify(adminPresets)); } catch(e){} }
+/* عددهای فعلی فرم پنل ادمین (همان‌هایی که کاربر روی صفحه می‌بیند و ست کرده است) */
+function readAdminFormParams(){
+  const next = { ...PARAMS };
+  for(const f of PARAM_FIELDS){
+    if(!f.key) continue;
+    const el = $("pf-" + f.key); if(!el) continue;
+    next[f.key] = clampParam(f, el.value);
+    el.value = next[f.key];
   }
+  return next;
+}
+function adminPresetSummary(pr){
+  const p = pr.params;
+  return "ظرفیت حمل " + faNum(p.capacity) + " نفر · سقف قدم " + faNum(p.maxTime) +
+    " · باتری شروع " + faNum(p.startBattery) + "٪ · موانع " + faNum(p.obstacles) +
+    " · خانهٔ خطرناک " + faNum(p.dangerCells) + " · هزینهٔ خطر " + faNum(p.dangerCost) +
+    " · شارژ هر قدم " + faNum(p.chargeRate) + "٪ · مصدومان: بحرانی " + faNum(p.survivorsCritical) +
+    "، فوری " + faNum(p.survivorsUrgent) + "، عادی " + faNum(p.survivorsNormal) +
+    " · مأموریت تمرینی " + faNum(p.trainEpisodes) + " · نقشهٔ مقایسه " + faNum(p.evalMaps);
+}
+function renderAdminPresets(){
+  const box = $("adminPresetList"); if(!box) return;
+  box.innerHTML = "";
+  if(!adminPresets.length){
+    const p = document.createElement("p"); p.className = "scn-empty";
+    p.textContent = "هنوز تنظیمی ذخیره نکرده‌ای؛ عددهای بالا را ست کن، یک اسم بده و «ذخیرهٔ تنظیم فعلی» را بزن.";
+    box.appendChild(p);
+    return;
+  }
+  adminPresets.forEach((pr, i)=>{
+    const card = document.createElement("div"); card.className = "admin-preset-card";
+    const head = document.createElement("div"); head.className = "admin-preset-head";
+    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = pr.name;
+    const sp = document.createElement("span"); sp.className = "sp";
+    const applyBtn = document.createElement("button"); applyBtn.type = "button"; applyBtn.className = "btn small primary"; applyBtn.textContent = "اعمال";
+    applyBtn.addEventListener("click", ()=> applyAdminPreset(i));
+    const delBtn = document.createElement("button"); delBtn.type = "button"; delBtn.className = "btn small"; delBtn.textContent = "حذف";
+    delBtn.addEventListener("click", ()=> deleteAdminPreset(i));
+    head.appendChild(nm); head.appendChild(sp); head.appendChild(applyBtn); head.appendChild(delBtn);
+    const sum = document.createElement("div"); sum.className = "admin-preset-sum"; sum.textContent = adminPresetSummary(pr);
+    card.appendChild(head); card.appendChild(sum);
+    box.appendChild(card);
+  });
+}
+function saveAdminPreset(){
+  const next = readAdminFormParams();
+  if(next.survivorsCritical + next.survivorsUrgent + next.survivorsNormal < 1){
+    $("adminPanelErr").textContent = "حداقل یک مصدوم باید در نقشه باشد؛ تعداد مصدوم عادی را بیشتر کن.";
+    $("adminOk").textContent = "";
+    return;
+  }
+  let name = $("adminPresetName").value.trim().slice(0, 60);
+  if(!name){
+    let n = adminPresets.length + 1;
+    while(adminPresets.some(p => p.name === "تنظیم " + faNum(n))) n++;
+    name = "تنظیم " + faNum(n);
+  }
+  const params = sanitizeParams(next);
+  const existing = adminPresets.findIndex(p => p.name === name);
+  let updated = false;
+  if(existing >= 0){ adminPresets[existing] = { name, params }; updated = true; }
+  else adminPresets.push({ name, params });
+  persistAdminPresets(); renderAdminPresets();
+  $("adminPresetName").value = "";
+  $("adminPanelErr").textContent = "";
+  $("adminOk").textContent = updated ? ("تنظیم «" + name + "» با عددهای فعلی به‌روز شد.") : ("تنظیم «" + name + "» ذخیره شد؛ با دکمهٔ «اعمال» هر وقت خواستی برش گردان.");
+}
+function applyAdminPreset(i){
+  const pr = adminPresets[i]; if(!pr) return;
+  PARAMS = sanitizeParams(pr.params);
+  persistParams(); syncPoints(); refreshParamLabels();
+  buildAdminFields(); renderAdminPresets();
+  resetMission(); // مأموریت با پارامترهای این تنظیم از اول ساخته می‌شود
+  $("adminPanelErr").textContent = "";
+  $("adminOk").textContent = "تنظیم «" + pr.name + "» اعمال شد و مأموریت از اول شروع شد.";
+}
+function deleteAdminPreset(i){
+  const pr = adminPresets[i]; if(!pr) return;
+  adminPresets.splice(i, 1);
+  persistAdminPresets(); renderAdminPresets();
+  $("adminPanelErr").textContent = "";
+  $("adminOk").textContent = "تنظیم «" + pr.name + "» حذف شد.";
 }
 function refreshParamLabels(){
   $("trainBtn").textContent = "آموزش عامل یادگیرنده (" + faNum(PARAMS.trainEpisodes) + " مأموریت تمرینی)";
@@ -1536,11 +1635,10 @@ function buildAdminFields(){
 }
 function openAdmin(){
   $("adminOverlay").classList.add("on");
-  if(isAdminAuthed()) showAdminPanel(); else showAdminLogin();
+  showAdminPanel();
 }
 function closeAdmin(){ $("adminOverlay").classList.remove("on"); }
 function applyAdminParams(fromDefaults){
-  if(!isAdminAuthed()){ showAdminLogin(); return; }
   const next = { ...PARAMS };
   for(const f of PARAM_FIELDS){
     if(!f.key) continue;
@@ -1560,11 +1658,10 @@ function applyAdminParams(fromDefaults){
   $("adminOk").textContent = "پارامترها اعمال و ذخیره شدند و مأموریت از اول شروع شد.";
 }
 $("adminOpen").addEventListener("click", openAdmin);
-$("adminLoginBtn").addEventListener("click", attemptAdminLogin);
-$("adminLoginClose").addEventListener("click", closeAdmin);
-$("adminUser").addEventListener("keydown", e=>{ if(e.key === "Enter") attemptAdminLogin(); });
-$("adminPass").addEventListener("keydown", e=>{ if(e.key === "Enter") attemptAdminLogin(); });
+$("showPresetsToggle").addEventListener("change", e=> setShowPresets(e.target.checked));
 $("adminClose").addEventListener("click", closeAdmin);
+$("adminPresetSave").addEventListener("click", saveAdminPreset);
+$("adminPresetName").addEventListener("keydown", e=>{ if(e.key === "Enter") saveAdminPreset(); });
 $("adminApply").addEventListener("click", ()=> applyAdminParams(false));
 $("adminDefaults").addEventListener("click", ()=> applyAdminParams(true));
 $("adminOverlay").addEventListener("click", e=>{ if(e.target === $("adminOverlay")) closeAdmin(); });
@@ -1572,6 +1669,7 @@ $("adminOverlay").addEventListener("click", e=>{ if(e.target === $("adminOverlay
 /* ================= شروع ================= */
 renderRules();
 renderSaved();
+applyPresetVisibility();
 refreshParamLabels();
 renderModelStrategy();
 resetMission(7);
