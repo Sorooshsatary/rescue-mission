@@ -355,7 +355,7 @@
     </section>
   </div>
 
-  <!-- ===== تغییر محیط و تنظیم سناریوها (در هر دو مرحله باز است) ===== -->
+  <!-- ===== تغییر محیط و تنظیم سناریوها (فقط در مرحلهٔ ۲ باز است) ===== -->
   <section class="panel" id="shockPanel" aria-label="تغییر محیط و تنظیم سناریوها">
     <div class="shock-zone" id="shockZone">
       <div class="shock-zone-text">
@@ -369,10 +369,10 @@
     <div class="shock-banner" id="shockBanner" hidden role="alert"></div>
   </section>
 
-  <!-- ===== کارت قفل آموزش ربات (فقط در مرحلهٔ ۱ دیده می‌شود) ===== -->
-  <section class="panel stage-lock-card" id="stageLockCard" aria-label="آموزش ربات قفل است">
+  <!-- ===== کارت قفل مرحلهٔ ۲ (فقط در مرحلهٔ ۱ دیده می‌شود) ===== -->
+  <section class="panel stage-lock-card" id="stageLockCard" aria-label="مرحله ۲ قفل است">
     <h2>مرحله ۲: آموزش ربات و مقایسه</h2>
-    <p class="sub">آموزش ربات قفل است — برای آموزش ربات و مقایسه با آن، رمز مرحله بعد را که آموزگار اعلام می‌کند وارد کن.</p>
+    <p class="sub">مرحله ۲ قفل است — برای آموزش ربات، مقایسه با آن و آزمایش تغییر محیط، رمز مرحله بعد را که آموزگار اعلام می‌کند وارد کن.</p>
     <div class="row">
       <input type="text" id="stageCodeInput" placeholder="رمز مرحله بعد" aria-label="رمز مرحله بعد" inputmode="numeric" autocomplete="off" style="flex:1; min-width:140px" />
       <button class="btn primary" id="stageUnlockBtn" type="button">باز کردن مرحله بعد</button>
@@ -1862,9 +1862,11 @@ function normalizeStageCode(v){
 function applyStage(stage){
   currentStage = stage === 2 ? 2 : 1;
   const locked = currentStage === 1;
-  /* در مرحلهٔ ۱ فقط بخش «آزمایش بزرگ» (آموزش عامل، مقایسه و استراتژی مدل) قفل است؛
-     سازنده، صفحهٔ مأموریت زنده، بازرس تصمیم، بازپخش و تنظیم سناریوها باز می‌مانند. */
+  /* در مرحلهٔ ۱ بخش «آزمایش بزرگ» (آموزش عامل، مقایسه و استراتژی مدل) و بخش
+     «آزمایش تغییر محیط» (تغییر ناگهانی محیط، تنظیم سناریوها و بازگشت به محیط عادی) قفل‌اند؛
+     سازنده، صفحهٔ مأموریت زنده، بازرس تصمیم و بازپخش باز می‌مانند. */
   const cp = $("comparePanel"); if(cp) cp.classList.toggle("stage-hidden", locked);
+  const sp = $("shockPanel"); if(sp) sp.classList.toggle("stage-hidden", locked);
   const card = $("stageLockCard"); if(card) card.classList.toggle("stage-hidden", !locked);
   const badge = $("stageBadge"); if(badge) badge.textContent = locked ? "مرحله ۱: ساخت استراتژی" : "مرحله ۲: آزمایش و مقایسه";
   try { localStorage.setItem(STAGE_KEY, String(currentStage)); } catch(e){}
