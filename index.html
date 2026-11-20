@@ -157,6 +157,16 @@
   .bar-track{ height:16px; background:var(--cell); border-radius:6px; overflow:hidden; }
   .bar-fill{ height:100%; border-radius:6px; }
   #trainChart{ width:100%; height:90px; display:block; margin-top:8px; }
+  /* ---------- مسابقهٔ همزمان ---------- */
+  .race-zone{ margin-top:18px; border-top:1px dashed var(--line); padding-top:14px; }
+  .race-title{ margin:0 0 4px; font-size:16.5px; font-weight:800; }
+  .race-msg{ border:1px dashed var(--line); border-radius:10px; padding:12px 14px; color:var(--muted); font-size:14px; background:var(--panel); }
+  .race-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; direction:ltr; }
+  @media (max-width:760px){ .race-grid{ grid-template-columns:1fr; } }
+  .race-side{ direction:rtl; border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--panel); }
+  .race-side h4{ margin:0 0 10px; font-size:15px; font-weight:800; text-align:center; }
+  .race-dec{ margin-top:10px; border-radius:9px; padding:8px 12px; font-size:13.5px; font-weight:700; background:color-mix(in srgb, var(--teal) 10%, var(--panel2)); border:1px solid var(--line); min-height:2.6em; }
+  .race-stats{ margin-top:8px; font-size:13px; color:var(--muted); text-align:center; }
   .note{ font-size:13px; color:var(--muted); }
   /* ---------- استراتژی مدل ---------- */
   .model-zone{ margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--panel2); }
@@ -428,6 +438,38 @@
     </div>
     <p class="note" id="evalNote">اول عامل یادگیرنده را آموزش بده، بعد مقایسه را اجرا کن. وقتی ظرفیت حمل از ۲ به ۱ می‌رسد، ببین استراتژی ثابت تو و سیاست یادگرفته‌شده چطور رفتار می‌کنند — و آیا یادگیری دوباره کمک می‌کند یا نه.</p>
     <div id="evalOut"></div>
+
+    <div class="race-zone" id="raceZone">
+      <h3 class="race-title">مسابقهٔ همزمان: استراتژی تو در برابر ربات</h3>
+      <p class="sub">هر دو ربات روی یک نقشهٔ یکسان و از یک نقطهٔ شروع حرکت می‌کنند و قدم‌به‌قدم با هم جلو می‌روند تا خودت ببینی هر کدام در همان موقعیت چه تصمیمی می‌گیرد. تختهٔ سمت چپ استراتژی توست (همان قانون‌هایی که الان در سازنده بارگذاری شده) و تختهٔ سمت راست عامل یادگیرنده.</p>
+      <div class="race-msg" id="raceMsg">اول عامل یادگیرنده را آموزش بده، بعد می‌توانی مسابقهٔ همزمان را ببینی.</div>
+      <div id="raceMain" hidden>
+        <div class="row" style="margin-bottom:12px">
+          <label style="font-size:14px">نقشهٔ مسابقه:
+            <select id="raceMapSel" aria-label="انتخاب نقشهٔ مسابقه"></select>
+          </label>
+          <button class="btn small" id="raceRandomBtn" type="button">نقشهٔ تصادفی</button>
+          <span style="flex:1"></span>
+          <button class="btn primary" id="racePlayBtn" type="button">▶ پخش</button>
+          <button class="btn" id="raceStepBtn" type="button">یک قدم</button>
+          <button class="btn" id="raceResetBtn" type="button">از اول</button>
+        </div>
+        <div class="race-grid">
+          <div class="race-side">
+            <h4>استراتژی تو</h4>
+            <div class="board" id="raceBoardHuman" role="img" aria-label="تختهٔ استراتژی دانش‌آموز"></div>
+            <div class="race-dec" id="raceDecHuman">آمادهٔ شروع</div>
+            <div class="race-stats" id="raceStatsHuman"></div>
+          </div>
+          <div class="race-side">
+            <h4>عامل یادگیرنده</h4>
+            <div class="board" id="raceBoardRL" role="img" aria-label="تختهٔ عامل یادگیرنده"></div>
+            <div class="race-dec" id="raceDecRL">آمادهٔ شروع</div>
+            <div class="race-stats" id="raceStatsRL"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <div style="margin-top:20px; text-align:center">
@@ -510,6 +552,8 @@ const $ = id => document.getElementById(id);
 const FA = "۰۱۲۳۴۵۶۷۸۹";
 const faNum = n => String(n).replace(/\d/g, d => FA[d]);
 const faPct = n => faNum(Math.round(n)) + "٪";
+/* فرار دادن کاراکترهای HTML برای متن‌هایی که کاربر وارد می‌کند (مثل عنوان سناریو) تا به‌صورت متن دیده شوند، نه کد */
+function escapeHtml(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 function mulberry32(a){ return function(){ a|=0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const key = (x,y) => y*12 + x;
 const inB = (x,y) => x>=0 && x<12 && y>=0 && y<12;
@@ -1347,6 +1391,7 @@ function trainQL(episodes, capacity, done){
       }
       qTrained = true; qTraining = false;
       renderModelStrategy();
+      updateRaceGate();
       $("trainInfo").textContent = "آموزش تمام شد: " + faNum(qEpisodes) + " مأموریت تمرینی، " + faNum(Object.keys(Q).length) + " حالت در جدول یادگیری." +
         (restored
           ? " جدول نهایی روی نقشه‌های اعتبارسنجی امتیاز " + faNum(finalScore.toFixed(1)) + " گرفت، اما بهترین نسخهٔ دیده‌شده در طول آموزش امتیاز " + faNum(bestValScore.toFixed(1)) + " داشت (مأموریت تمرینی " + faNum(bestValAt) + ")؛ همان بهترین نسخه حفظ شد."
@@ -1365,6 +1410,7 @@ $("resetTrainBtn").addEventListener("click", ()=>{
   bestQ = null; bestQCoarse = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0; bestValEnvSig = null;
   drawCurve();
   renderModelStrategy();
+  updateRaceGate();
   $("trainProg").style.width = "0%";
   $("trainInfo").textContent = "همه‌چیز از صفر شروع شد: جدول یادگیری، شمار مأموریت‌های تمرینی، منحنی آموزش و بهترین نقطهٔ ذخیره‌شده پاک شدند. حالا دکمهٔ آموزش را بزن تا عامل از اول یاد بگیرد.";
   $("evalBtn").disabled = true; $("finetuneBtn").disabled = true;
@@ -1463,6 +1509,113 @@ function evaluate(afterFinetune){
 }
 $("evalBtn").addEventListener("click", ()=> evaluate(false));
 
+/* ================= مسابقهٔ همزمان: استراتژی دانش‌آموز در برابر عامل یادگیرنده =================
+   هر دو ربات روی یک نقشهٔ یکسان (همان بذر) و از یک نقطهٔ شروع حرکت می‌کنند.
+   برای قدم‌ها دقیقاً از همان توابع موتور استفاده می‌شود: genMap برای ساخت نقشه،
+   humanDecision برای استراتژی دانش‌آموز، qChoose برای عامل و stepEnv برای اجرای قدم. */
+function renderStateBoard(boardEl, st){
+  boardEl.innerHTML = "";
+  const survAt = {};
+  st.survivors.forEach(s=>{ if(!s.picked && !s.delivered) survAt[key(s.x,s.y)] = s; });
+  for(let y=0;y<12;y++) for(let x=0;x<12;x++){
+    const k = key(x,y); const cell = document.createElement("div"); cell.className = "cell";
+    if(st.obstacles.has(k)) cell.classList.add("obstacle");
+    else if(st.danger.has(k)) cell.classList.add("danger");
+    if(x===st.base.x && y===st.base.y){ cell.classList.add("base"); cell.innerHTML = SVG.base + '<span class="base-flag">پایگاه</span>'; }
+    else if(st.chargers.some(c=>c.x===x && c.y===y)){ cell.classList.add("charger"); cell.innerHTML = SVG.charger; }
+    else if(survAt[k]){ cell.innerHTML = '<span class="surv-dot '+(survAt[k].level==="critical"?"crit":"")+'">' + SVG.person(LEVEL_COLOR[survAt[k].level]) + "</span>"; }
+    if(st.robot.x===x && st.robot.y===y){ cell.classList.add("robot-cell"); cell.innerHTML = SVG.robot; }
+    boardEl.appendChild(cell);
+  }
+}
+let raceSeed = 5000, raceHuman = null, raceRL = null, raceTimer = null, racePlaying = false;
+let raceDecHumanTxt = "", raceDecRLTxt = "";
+function raceCapacity(){ return Number($("capSel").value) || PARAMS.capacity; }
+function raceStop(){
+  racePlaying = false;
+  if(raceTimer){ clearInterval(raceTimer); raceTimer = null; }
+  const b = $("racePlayBtn"); if(b) b.textContent = "▶ پخش";
+}
+function raceSetup(){
+  raceStop();
+  const cap = raceCapacity();
+  raceHuman = genMap(raceSeed, cap);
+  raceRL = genMap(raceSeed, cap);
+  raceDecHumanTxt = "آمادهٔ شروع — ربات روی پایگاه ایستاده است.";
+  raceDecRLTxt = "آمادهٔ شروع — ربات روی پایگاه ایستاده است.";
+  renderRace();
+}
+function raceResultTxt(st){
+  if(!st.over) return "";
+  if(st.result === "win") return " — مأموریت کامل شد!";
+  if(st.result === "battery") return " — باتری تمام شد و مأموریت ناتمام ماند.";
+  return " — زمان مأموریت تمام شد.";
+}
+function raceStatsTxt(st){
+  return "امتیاز: " + faNum(st.score) + " · مصدوم نجات‌یافته: " + faNum(st.deliveredCount) + " از " + faNum(st.survivors.length) +
+    " · باتری: " + faPct(Math.max(0, st.battery)) + " · زمان: " + faNum(st.time) + " از " + faNum(st.maxTime);
+}
+function renderRace(){
+  if(!raceHuman || !raceRL) return;
+  renderStateBoard($("raceBoardHuman"), raceHuman);
+  renderStateBoard($("raceBoardRL"), raceRL);
+  $("raceDecHuman").textContent = raceDecHumanTxt + raceResultTxt(raceHuman);
+  $("raceDecRL").textContent = raceDecRLTxt + raceResultTxt(raceRL);
+  $("raceStatsHuman").textContent = raceStatsTxt(raceHuman);
+  $("raceStatsRL").textContent = raceStatsTxt(raceRL);
+}
+function raceStep(){
+  if(!qTrained || !raceHuman || !raceRL) return;
+  if(raceHuman.over && raceRL.over){ raceStop(); return; }
+  if(!raceHuman.over){
+    const dec = humanDecision(rules, raceHuman);
+    const info = stepEnv(raceHuman, dec.actionId);
+    raceDecHumanTxt = dec.fallback
+      ? "رفتار پیش‌فرض ← " + actLabel(dec.actionId)
+      : "قانون " + faNum(dec.ruleIndex+1) + ": " + condLabel(rules[dec.ruleIndex]) + " ← " + actLabel(dec.actionId);
+    if(info.event) raceDecHumanTxt += " — " + info.event;
+  }
+  if(!raceRL.over){
+    const actionId = QACT[qChoose(raceRL, 0)];
+    const info = stepEnv(raceRL, actionId);
+    raceDecRLTxt = "اقدام انتخاب‌شده: " + actLabel(actionId);
+    if(info.event) raceDecRLTxt += " — " + info.event;
+  }
+  renderRace();
+  if(raceHuman.over && raceRL.over) raceStop();
+}
+function racePlayToggle(){
+  if(!qTrained) return;
+  if(racePlaying){ raceStop(); return; }
+  if(!raceHuman || !raceRL || (raceHuman.over && raceRL.over)) raceSetup();
+  racePlaying = true; $("racePlayBtn").textContent = "⏸ توقف";
+  raceTimer = setInterval(raceStep, 380);
+}
+/* تا وقتی عامل آموزش ندیده، به‌جای تخته‌ها پیام «اول عامل یادگیرنده را آموزش بده» می‌آید (مثل مقایسه) */
+function updateRaceGate(){
+  const trained = !!qTrained;
+  const msg = $("raceMsg"), main = $("raceMain");
+  if(msg) msg.hidden = trained;
+  if(main) main.hidden = !trained;
+  if(trained){ if(!raceHuman || !raceRL) raceSetup(); else renderRace(); }
+}
+(function(){
+  const sel = $("raceMapSel");
+  for(let i=1;i<=30;i++){
+    const o = document.createElement("option");
+    o.value = String(5000 + i - 1);
+    o.textContent = "نقشهٔ " + faNum(i) + " (از نقشه‌های مقایسه)";
+    sel.appendChild(o);
+  }
+  sel.value = "5000";
+})();
+$("raceMapSel").addEventListener("change", e=>{ raceSeed = Number(e.target.value); if(qTrained) raceSetup(); });
+$("raceRandomBtn").addEventListener("click", ()=>{ raceSeed = Math.floor(Math.random()*90000)+10; if(qTrained) raceSetup(); });
+$("raceStepBtn").addEventListener("click", ()=>{ raceStop(); raceStep(); });
+$("racePlayBtn").addEventListener("click", racePlayToggle);
+$("raceResetBtn").addEventListener("click", ()=>{ if(qTrained) raceSetup(); });
+$("capSel").addEventListener("change", ()=>{ if(qTrained && raceHuman) raceSetup(); });
+
 /* ================= تغییر ناگهانی محیط ================= */
 const SHOCK_LABELS = { capacity:"ظرفیت حمل", maxTime:"زمان مأموریت", dangerCost:"هزینهٔ خطر", dangerCells:"خانه‌های خطرناک", obstacles:"موانع", chargeRate:"سرعت شارژ", startBattery:"باتری شروع" };
 const SHOCK_SCENARIOS = [
@@ -1479,7 +1632,7 @@ function showShockBanner(scenario, diffs){
   const changesTxt = diffs.map(d => SHOCK_LABELS[d.key] + " " + faNum(d.from) + " ← " + faNum(d.to)).join("، ");
   banner.className = "shock-banner";
   banner.innerHTML =
-    '<div class="shock-title">⚠ محیط ناگهان عوض شد! — ' + scenario.title + '</div>' +
+    '<div class="shock-title">⚠ محیط ناگهان عوض شد! — ' + escapeHtml(scenario.title) + '</div>' +
     '<div class="shock-changes">چه چیزهایی عوض شد؟<br>' + changesTxt + '</div>' +
     '<p><b>استراتژی قبلی‌ات دیگر تضمین‌شده نیست.</b> قانون‌هایت را دست نزدیم تا خودت ببینی در محیط جدید چطور عمل می‌کنند. قانون‌ها را اصلاح کن، مأموریت را دوباره اجرا کن و بعد دوباره دکمهٔ «اجرای مقایسه» را بزن.</p>' +
     '<p><b>یادآوری دربارهٔ عامل یادگیرنده:</b> عامل یادگیرنده هم روی محیط قبلی آموزش دیده است؛ تا دکمهٔ «یادگیری دوباره در محیط جدید» را نزنی، امتیازش در این محیط تازه احتمالاً افت می‌کند — درست مثل استراتژی ثابت تو.</p>';
@@ -1914,6 +2067,7 @@ renderSaved();
 applyPresetVisibility();
 refreshParamLabels();
 renderModelStrategy();
+updateRaceGate();
 resetMission(7);
 validate(false);
 $("trainBtn").disabled = false;
