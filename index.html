@@ -1257,7 +1257,9 @@ function runEpisode(agentFn, seed, capacity, train, epsilon){
 function trainQL(episodes, capacity, done){
   let ep = 0, windowReward = 0;
   qTraining = true;
+  const trainLabelBefore = $("trainBtn").textContent;
   $("trainBtn").disabled = true; $("finetuneBtn").disabled = true; $("resetTrainBtn").disabled = true;
+  $("trainBtn").textContent = "⏳ در حال آموزش…";
   const sig = envSignature(capacity);
   const envChanged = bestValEnvSig !== null && bestValEnvSig !== sig;
   if(envChanged){
@@ -1303,6 +1305,7 @@ function trainQL(episodes, capacity, done){
           ? " جدول نهایی روی نقشه‌های اعتبارسنجی امتیاز " + faNum(finalScore.toFixed(1)) + " گرفت، اما بهترین نسخهٔ دیده‌شده در طول آموزش امتیاز " + faNum(bestValScore.toFixed(1)) + " داشت (مأموریت تمرینی " + faNum(bestValAt) + ")؛ همان بهترین نسخه حفظ شد."
           : " بهترین امتیاز اعتبارسنجی: " + faNum(bestValScore.toFixed(1)) + " — جدول نهایی همان بهترین نسخه است.") +
         " حالا مقایسه را اجرا کن.";
+      $("trainBtn").textContent = trainLabelBefore;
       $("trainBtn").disabled = false; $("finetuneBtn").disabled = false; $("evalBtn").disabled = false; $("resetTrainBtn").disabled = false;
       if(done) done();
     }
@@ -1782,6 +1785,16 @@ refreshParamLabels();
 renderModelStrategy();
 resetMission(7);
 validate(false);
+$("trainBtn").disabled = false;
+$("resetTrainBtn").disabled = false;
+$("evalBtn").disabled = true;
+$("finetuneBtn").disabled = true;
+$("trainProg").style.width = "0%";
+$("trainInfo").textContent = "هنوز آموزشی انجام نشده است.";
+$("trainChart").innerHTML = "";
+$("evalOut").innerHTML = "";
+$("evalNote").textContent = "اول عامل یادگیرنده را آموزش بده، بعد مقایسه را اجرا کن.";
+$("shockBanner").hidden = true;
 </script>
 </body>
 </html>
