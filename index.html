@@ -33,9 +33,6 @@
   header.top h1{ margin:0; font-size:clamp(24px,4vw,36px); font-weight:900; letter-spacing:-.01em; }
   header.top h1 .en{ color:var(--teal); font-size:.55em; font-weight:800; }
   header.top p{ margin:0; color:var(--muted); max-width:640px; font-size:15px; }
-  .howto{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px; }
-  .howto span{ background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:5px 14px; font-size:13.5px; font-weight:500; box-shadow:var(--shadow); }
-  .howto b{ color:var(--teal); }
   .layout{ display:grid; grid-template-columns:350px minmax(0,1fr) 330px; gap:16px; align-items:start; }
   @media (max-width:1180px){ .layout{ grid-template-columns:1fr 1fr; } .board-col{ grid-column:1 / -1; order:-1; } }
   @media (max-width:720px){ .layout{ grid-template-columns:1fr; } }
@@ -250,17 +247,9 @@
 <div class="wrap">
   <header class="top">
     <h1>مأموریت نجات</h1>
-    <p>مغز ربات نجات را خودت طراحی کن: قانون بنویس، اولویت بده، اجرایش را تماشا کن و ببین در هر قدم <b>چرا</b> آن تصمیم را گرفت. بدون حتی یک خط کدنویسی.</p>
     <span class="stage-badge" id="stageBadge">مرحله ۱: ساخت استراتژی</span>
     <button class="btn small" id="adminOpen" type="button" style="margin-inline-start:auto">پنل ادمین</button>
   </header>
-
-  <div class="howto">
-    <span><b>۱.</b> قانون بساز: اگر… آنگاه…</span>
-    <span><b>۲.</b> با فلش‌ها اولویت‌ها را جابه‌جا کن</span>
-    <span><b>۳.</b> «اجرای آزمایشی» را بزن و تصمیم‌های ربات را در بازرس تصمیم دنبال کن</span>
-    <span><b>۴.</b> استراتژی‌ات را با عامل یادگیرنده مقایسه کن</span>
-  </div>
 
   <div class="layout">
     <!-- ===== Strategy Builder ===== -->
@@ -440,7 +429,11 @@
     <div id="evalOut"></div>
 
     <div class="race-zone" id="raceZone">
-      <h3 class="race-title">مسابقهٔ همزمان: استراتژی تو در برابر ربات</h3>
+      <button class="model-toggle" id="raceToggle" type="button" aria-expanded="false" aria-controls="raceBody">
+        <span class="model-title">مسابقهٔ همزمان: استراتژی تو در برابر ربات</span>
+        <span class="model-arrow" id="raceArrow" aria-hidden="true">▾</span>
+      </button>
+      <div id="raceBody" hidden>
       <p class="sub">هر دو ربات روی یک نقشهٔ یکسان و از یک نقطهٔ شروع حرکت می‌کنند و قدم‌به‌قدم با هم جلو می‌روند تا خودت ببینی هر کدام در همان موقعیت چه تصمیمی می‌گیرد. تختهٔ سمت چپ استراتژی توست (همان قانون‌هایی که الان در سازنده بارگذاری شده) و تختهٔ سمت راست عامل یادگیرنده.</p>
       <div class="race-msg" id="raceMsg">اول عامل یادگیرنده را آموزش بده، بعد می‌توانی مسابقهٔ همزمان را ببینی.</div>
       <div id="raceMain" hidden>
@@ -468,6 +461,44 @@
             <div class="race-stats" id="raceStatsRL"></div>
           </div>
         </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== کارت قفل مرحلهٔ ۳ (فقط در مرحلهٔ ۲ دیده می‌شود) ===== -->
+  <section class="panel stage-lock-card" id="stage3LockCard" aria-label="مرحله ۳ قفل است">
+    <h2>مرحله ۳: بهبود استراتژی</h2>
+    <p class="sub">مرحله ۳ قفل است — برای بهبود استراتژی‌ات با یادگیری، رمز مرحله بعد را که آموزگار اعلام می‌کند وارد کن.</p>
+    <div class="row">
+      <input type="text" id="stage3CodeInput" placeholder="رمز مرحله بعد" aria-label="رمز مرحله بعد" inputmode="numeric" autocomplete="off" style="flex:1; min-width:140px" />
+      <button class="btn primary" id="stage3UnlockBtn" type="button">باز کردن مرحله بعد</button>
+    </div>
+    <p class="stage-err" id="stage3CodeErr" role="alert"></p>
+  </section>
+
+  <!-- ===== بهبود استراتژی من با یادگیری (مرحلهٔ ۳) ===== -->
+  <section class="panel compare" id="improvePanel" aria-label="بهبود استراتژی با یادگیری">
+    <h2>بهبود استراتژی من با یادگیری</h2>
+    <p class="sub">استراتژی‌ای که الان در سازنده بارگذاری شده، نقطهٔ شروع است: اول ربات رفتار همان استراتژی را روی چند نقشه تماشا می‌کند و از رویش یک جدول یادگیری اولیه می‌سازد؛ بعد با یادگیری تقویتی روی صدها نقشهٔ تازه ادامه می‌دهد تا جاهای بهتر را خودش پیدا کند. استراتژی اصلی‌ات در سازنده دست‌نخورده می‌ماند و جدول عامل مرحلهٔ ۲ هم جدا و سر جایش است.</p>
+    <div class="agent-card">
+      <h3>بهبود استراتژی بارگذاری‌شده</h3>
+      <div class="prog"><i id="impProg"></i></div>
+      <p class="note" id="impInfo">هنوز بهبودی انجام نشده است. اول استراتژی دلخواهت را در سازنده بارگذاری کن، بعد «شروع از ابتدا» را بزن. بعد از اولین بهبود، می‌توانی با «ادامهٔ یادگیری» همان یادگیری را روی همان جدول ادامه بدهی، بدون اینکه از اول شروع شود.</p>
+      <div class="row" style="margin-top:8px">
+        <button class="btn primary" id="impBtn" type="button">شروع از ابتدا</button>
+        <button class="btn" id="impContBtn" type="button" disabled>ادامهٔ یادگیری</button>
+      </div>
+    </div>
+    <div id="impOut"></div>
+    <div class="model-zone" id="impModelZone" hidden>
+      <button class="model-toggle" id="impModelToggle" type="button" aria-expanded="false" aria-controls="impModelBody">
+        <span class="model-title">استراتژی بهبودیافته — قانون‌هایی که ساخته شد</span>
+        <span class="model-arrow" id="impModelArrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="model-body" id="impModelBody" hidden>
+        <p>این‌ها قانون‌های استراتژی بهبودیافته‌اند؛ مثل قانون‌های خودت بخوانشان و ببین کجاها با قانون‌های تو فرق می‌کنند.</p>
+        <div id="impModel"></div>
       </div>
     </div>
   </section>
@@ -513,6 +544,7 @@
         <div class="row" style="margin-top:12px">
           <button class="btn primary" id="adminApply" type="button">اعمال و ذخیره</button>
           <button class="btn" id="adminDefaults" type="button">بازنشانی تنظیمات</button>
+          <button class="btn" id="adminRelock2Btn" type="button">بازگشت به مرحله ۲ (قفل کردن مرحله ۳)</button>
           <button class="btn" id="adminRelockBtn" type="button">بازگشت به مرحله ۱ (قفل کردن دوباره)</button>
           <button class="btn" id="adminClose" type="button">بستن پنل</button>
         </div>
@@ -1349,7 +1381,7 @@ function trainQL(episodes, capacity, done){
   let ep = 0, windowReward = 0;
   qTraining = true;
   const trainLabelBefore = $("trainBtn").textContent;
-  $("trainBtn").disabled = true; $("finetuneBtn").disabled = true; $("resetTrainBtn").disabled = true;
+  $("trainBtn").disabled = true; $("finetuneBtn").disabled = true; $("resetTrainBtn").disabled = true; $("impBtn").disabled = true; $("impContBtn").disabled = true;
   $("trainBtn").textContent = "⏳ در حال آموزش…";
   const sig = envSignature(capacity);
   const envChanged = bestValEnvSig !== null && bestValEnvSig !== sig;
@@ -1398,7 +1430,7 @@ function trainQL(episodes, capacity, done){
           : " بهترین امتیاز اعتبارسنجی: " + faNum(bestValScore.toFixed(1)) + " — جدول نهایی همان بهترین نسخه است.") +
         " حالا مقایسه را اجرا کن.";
       $("trainBtn").textContent = trainLabelBefore;
-      $("trainBtn").disabled = false; $("finetuneBtn").disabled = false; $("evalBtn").disabled = false; $("resetTrainBtn").disabled = false;
+      $("trainBtn").disabled = false; $("finetuneBtn").disabled = false; $("evalBtn").disabled = false; $("resetTrainBtn").disabled = false; $("impBtn").disabled = false; $("impContBtn").disabled = !impTrained;
       if(done) done();
     }
   }
@@ -1439,20 +1471,17 @@ function statePhrase(stateKeyStr){
   const p = stateKeyStr.split("|").map(Number);
   return [BATT_TXT[p[0]], CARRY_TXT[p[1]], NEAR_TXT[p[2]], CRIT_TXT[p[3]], TIME_TXT[p[4]], CHARGER_TXT[p[5]]].join(" و ");
 }
-function renderModelStrategy(){
-  const box = $("modelStrategy");
-  if(!box) return;
-  const entries = Object.keys(QVisits)
-    .filter(k => Q[k])
+/* ساخت فهرست قانون‌های خوانا از روی یک جدول یادگیری و شمار بازدیدهایش؛
+   هم بخش «استراتژی مدل» از آن استفاده می‌کند هم بخش «بهبود استراتژی» مرحلهٔ ۳. */
+function modelRulesHtml(visits, table){
+  const entries = Object.keys(visits)
+    .filter(k => table[k])
     .map(k => {
-      const row = Q[k];
+      const row = table[k];
       let bi = 0; for(let i=1;i<row.length;i++) if(row[i] > row[bi]) bi = i;
-      return { stateKey: k, count: QVisits[k], actionId: QACT[bi], q: row[bi] };
+      return { stateKey: k, count: visits[k], actionId: QACT[bi], q: row[bi] };
     });
-  if(!qTrained || !entries.length){
-    box.innerHTML = '<p class="note">هنوز چیزی برای نمایش نیست — اول عامل یادگیرنده را آموزش بده.</p>';
-    return;
-  }
+  if(!entries.length) return "";
   entries.sort((a,b)=> (b.count - a.count) || (b.q - a.q));
   const top = entries.slice(0, 12);
   let html = '<div class="model-list">';
@@ -1460,11 +1489,28 @@ function renderModelStrategy(){
     html += '<div class="model-row"><span class="if-part">اگر ' + statePhrase(e.stateKey) + '</span> ← <span class="then-part">آنگاه: ' + actLabel(e.actionId) + '</span></div>';
   }
   html += '</div>';
-  box.innerHTML = html;
+  return html;
+}
+function renderModelStrategy(){
+  const box = $("modelStrategy");
+  if(!box) return;
+  if(!qTrained){
+    box.innerHTML = '<p class="note">هنوز چیزی برای نمایش نیست — اول عامل یادگیرنده را آموزش بده.</p>';
+    return;
+  }
+  box.innerHTML = modelRulesHtml(QVisits, Q) || '<p class="note">هنوز چیزی برای نمایش نیست — اول عامل یادگیرنده را آموزش بده.</p>';
 }
 /* دراپ‌دان بخش استراتژی مدل: پیش‌فرض بسته است؛ کلیک روی سربرگ، بدنه را باز و بسته می‌کند. */
 $("modelToggle").addEventListener("click", ()=>{
   const body = $("modelBody"), arrow = $("modelArrow"), btn = $("modelToggle");
+  const open = body.hidden;
+  body.hidden = !open;
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  arrow.textContent = open ? "▴" : "▾";
+});
+/* دراپ‌دان بخش مسابقهٔ همزمان: مثل استراتژی مدل، پیش‌فرض بسته است و فقط سربرگش دیده می‌شود. */
+$("raceToggle").addEventListener("click", ()=>{
+  const body = $("raceBody"), arrow = $("raceArrow"), btn = $("raceToggle");
   const open = body.hidden;
   body.hidden = !open;
   btn.setAttribute("aria-expanded", open ? "true" : "false");
@@ -1615,6 +1661,214 @@ $("raceStepBtn").addEventListener("click", ()=>{ raceStop(); raceStep(); });
 $("racePlayBtn").addEventListener("click", racePlayToggle);
 $("raceResetBtn").addEventListener("click", ()=>{ if(qTrained) raceSetup(); });
 $("capSel").addEventListener("change", ()=>{ if(qTrained && raceHuman) raceSetup(); });
+
+/* ================= مرحلهٔ ۳: بهبود استراتژی دانش‌آموز با یادگیری =================
+   جدول بهبود (impQ و دوستان) کاملاً جدا از جدول عامل مرحلهٔ ۲ است و آن را دست نمی‌زند.
+   هنگام آموزش، جدول‌های بهبود موقتاً جای جدول‌های اصلی می‌نشینند تا دقیقاً از همان موتور
+   آموزش Q(λ) و بهترین‌چک‌پوینت استفاده شود؛ در پایان، همهٔ وضعیت عامل مرحلهٔ ۲ سر جایش برمی‌گردد. */
+let impQ = {}, impQCoarse = {}, impQVisits = {};
+let impTrained = false;
+/* وضعیت لازم برای «ادامهٔ یادگیری»: نسخهٔ اولیهٔ برگرفته از استراتژی (کفِ تضمینِ «امتیاز
+   بهبودیافته هرگز از استراتژی اصلی کمتر نمی‌شود»)، قانون‌هایی که بهبود رویشان اجرا شده و
+   امتیاز استراتژی اصلی روی همان نقشه‌های مقایسه — تا ادامهٔ یادگیری جدول را از اول نسازد. */
+let impBaseSnapshot = null, impRulesCopy = null, impOrigResult = null;
+
+/* اقدام مؤثر استراتژی در یک وضعیت، به زبان اقدام‌های جدول یادگیری ترجمه می‌شود
+   (اقدام‌های ترکیبی مثل «شارژ هوشمند» به رفتار پایه‌شان برگردانده می‌شوند). */
+function effectiveStrategyAction(rulesCopy, st){
+  const dec = humanDecision(rulesCopy, st);
+  let a = dec.actionId;
+  if(a === "chargeSmart") a = dec.obs.battery < PARAMS.smartChargeThreshold ? "toCharger" : "rescueNearest";
+  else if(a === "deliverPartial") a = st.carrying.length ? "toBase" : "search";
+  return a;
+}
+/* مقداردهی اولیهٔ جدول بهبود از روی رفتار خود استراتژی: استراتژی روی ۵۰ نقشهٔ تصادفی اجرا
+   می‌شود و در هر حالت دیده‌شده، اقدامی که خودش انتخاب کرده امتیاز اولیه می‌گیرد. */
+function initImpFromStrategy(rulesCopy){
+  impQ = {}; impQCoarse = {}; impQVisits = {};
+  const BONUS = 5;
+  for(let m=0;m<50;m++){
+    const st = genMap(Math.floor(Math.random()*90000)+10, 2);
+    let guard = 0;
+    while(!st.over && guard++ < 400){
+      const obs = observe(st);
+      const fk = qStateKey(obs, st), ck = qCoarseKey(obs);
+      const a = effectiveStrategyAction(rulesCopy, st);
+      const ai = QACT.indexOf(a);
+      if(ai >= 0){
+        const row = qRow(impQ, fk); if(row[ai] < BONUS) row[ai] = BONUS;
+        const crow = qRow(impQCoarse, ck); if(crow[ai] < BONUS) crow[ai] = BONUS;
+      }
+      impQVisits[fk] = (impQVisits[fk] || 0) + 1;
+      stepEnv(st, a);
+    }
+  }
+}
+/* انتخاب محافظه‌کارانه: اقدام استراتژی پایه است؛ فقط وقتی جدول یادگیری برای اقدام دیگری
+   امتیاز بیشتری دارد، همان اقدام بهتر انتخاب می‌شود. روی جدول اولیه — که امتیازهایش از خود
+   استراتژی آمده — دقیقاً همان استراتژی بازتولید می‌شود؛ پس این نامزد هیچ‌وقت از اصل بدتر نیست. */
+function conservativeChoose(st, rulesCopy){
+  const dec = humanDecision(rulesCopy, st);
+  let aS = dec.actionId;
+  if(aS === "chargeSmart") aS = dec.obs.battery < PARAMS.smartChargeThreshold ? "toCharger" : "rescueNearest";
+  else if(aS === "deliverPartial") aS = st.carrying.length ? "toBase" : "search";
+  const si = QACT.indexOf(aS);
+  if(si < 0) return aS;
+  const vals = qEffectiveValues(dec.obs, st);
+  let bi = 0; for(let i=1;i<vals.length;i++) if(vals[i] > vals[bi]) bi = i;
+  return vals[bi] > vals[si] ? QACT[bi] : aS;
+}
+function renderImpResults(orig, improved, usedFallback){
+  const rows = [
+    { name:"استراتژی تو (اصلی)", color:"var(--orange)", r:orig },
+    { name:"استراتژی بهبودیافته", color:"var(--teal)", r:improved }
+  ];
+  const maxScore = Math.max(orig.score, improved.score) || 1;
+  let html = '<table class="results"><tr><th>عامل</th><th>میانگین امتیاز</th><th>مصدوم نجات‌یافته (از ' + faNum(PARAMS.survivorsCritical + PARAMS.survivorsUrgent + PARAMS.survivorsNormal) + ')</th><th>تکمیل مأموریت</th><th>باتری باقی‌مانده</th><th>زمان مصرفی</th></tr>';
+  for(const row of rows){
+    html += "<tr><td>" + row.name + "</td><td>" + faNum(row.r.score.toFixed(1)) + "</td><td>" + faNum(row.r.rescued.toFixed(1)) + "</td><td>" + faPct(row.r.winRate) + "</td><td>" + faPct(row.r.battery) + "</td><td>" + faNum(Math.round(row.r.time)) + "</td></tr>";
+  }
+  html += "</table>";
+  html += '<div class="bars">' + rows.map(row =>
+    '<div class="bar-row"><span>' + row.name + '</span><div class="bar-track"><div class="bar-fill" style="width:' + Math.round(row.r.score/maxScore*100) + '%; background:' + row.color + '"></div></div><b>' + faNum(row.r.score.toFixed(1)) + "</b></div>").join("") + "</div>";
+  html += '<p class="note" style="margin-top:10px">هر دو دقیقاً روی همان ' + faNum(PARAMS.evalMaps) + ' نقشهٔ مقایسه (ظرفیت حمل ' + faNum(2) + ' نفر) اجرا شدند.</p>';
+  if(usedFallback) html += '<p class="note">آموزش این بار نتوانست استراتژی‌ات را بهتر کند؛ برای اینکه امتیازت کمتر نشود، همان نسخهٔ اولیهٔ برگرفته از استراتژی خودت نگه داشته شد. قانون‌هایت را کمی عوض کن و دوباره تلاش کن.</p>';
+  $("impOut").innerHTML = html;
+}
+function renderImpModel(){
+  const zone = $("impModelZone"), box = $("impModel");
+  if(!zone || !box) return;
+  if(!impTrained){ zone.hidden = true; return; }
+  zone.hidden = false;
+  /* دراپ‌دان قانون‌های بهبودیافته: بعد از هر اجرا فقط سربرگ با ▾ دیده می‌شود و بدنه بسته
+     می‌ماند؛ با کلیک روی سربرگ باز می‌شود — دقیقاً مثل بخش «استراتژی مدل». */
+  const body = $("impModelBody"), arrow = $("impModelArrow"), tog = $("impModelToggle");
+  if(body) body.hidden = true;
+  if(arrow) arrow.textContent = "▾";
+  if(tog) tog.setAttribute("aria-expanded", "false");
+  box.innerHTML = modelRulesHtml(impQVisits, impQ) || '<p class="note">هنوز چیزی برای نمایش نیست.</p>';
+}
+/* بهبود استراتژی در دو حالت:
+   - «شروع از ابتدا» (fromScratch): جدول تازه‌ای از رفتار استراتژی بارگذاری‌شده ساخته می‌شود
+     و بعد آموزش می‌بیند — رفتار قبلی همین دکمه.
+   - «ادامهٔ یادگیری»: جدول بهبودیافتهٔ فعلی نگه داشته می‌شود و آموزش روی همان جدول ادامه
+     پیدا می‌کند؛ جدول از اول ساخته نمی‌شود و مقداردهی اولیه از استراتژی تکرار نمی‌شود. */
+function improveStrategy(fromScratch){
+  if(qTraining) return;
+  if(!fromScratch && !impTrained) return;
+  const cap = 2;
+  const btn = $("impBtn"), contBtn = $("impContBtn");
+  btn.disabled = true; contBtn.disabled = true;
+  let rulesCopy, prevSnapshot = null;
+  if(fromScratch){
+    rulesCopy = JSON.parse(JSON.stringify(rules));
+    impRulesCopy = rulesCopy;
+    $("impInfo").textContent = "اول استراتژی‌ات روی همان نقشه‌های مقایسه امتیاز می‌گیرد و رفتارش روی ۵۰ نقشهٔ تمرینی دیده می‌شود تا جدول یادگیری اولیه ساخته شود…";
+    impOrigResult = evalAgent(st => humanDecision(rulesCopy, st).actionId, cap);
+    initImpFromStrategy(rulesCopy);
+    impBaseSnapshot = { Q: JSON.parse(JSON.stringify(impQ)), QCoarse: JSON.parse(JSON.stringify(impQCoarse)), QVisits: { ...impQVisits } };
+  } else {
+    rulesCopy = impRulesCopy;
+    prevSnapshot = { Q: JSON.parse(JSON.stringify(impQ)), QCoarse: JSON.parse(JSON.stringify(impQCoarse)), QVisits: { ...impQVisits } };
+    $("impInfo").textContent = "یادگیری روی همان جدول بهبودیافتهٔ قبلی ادامه پیدا می‌کند؛ جدول از اول ساخته نمی‌شود…";
+  }
+  const orig = impOrigResult;
+  const initSnapshot = impBaseSnapshot;
+  /* تعویض موقت جدول‌ها با جدول عامل اصلی، تا همان موتور آموزش و چک‌پوینت استفاده شود */
+  const saved = { Q, QCoarse, QVisits, bestQ, bestQCoarse, bestVisits, bestValScore, bestValAt, bestValEnvSig, qEpisodes };
+  Q = impQ; QCoarse = impQCoarse; QVisits = impQVisits;
+  bestQ = null; bestQCoarse = null; bestVisits = null; bestValScore = -Infinity; bestValAt = 0; bestValEnvSig = envSignature(cap);
+  qEpisodes = 0;
+  qTraining = true;
+  raceStop();
+  const btnStates = ["trainBtn","finetuneBtn","resetTrainBtn","evalBtn"].map(id => [id, $(id).disabled]);
+  btnStates.forEach(pair => { $(pair[0]).disabled = true; });
+  const episodes = PARAMS.trainEpisodes;
+  let ep = 0;
+  const epsStart = PARAMS.epsilon, epsMin = 0.03;
+  function bestTxt(){ return bestValScore === -Infinity ? "" : " — بهترین امتیاز اعتبارسنجی تا اینجا: " + faNum(bestValScore.toFixed(1)); }
+  function finish(){
+    const finalScore = evalQValidation(cap);
+    if(bestQ && finalScore < bestValScore){
+      Q = JSON.parse(JSON.stringify(bestQ));
+      if(bestQCoarse) QCoarse = JSON.parse(JSON.stringify(bestQCoarse));
+      if(bestVisits) QVisits = { ...bestVisits };
+    } else if(finalScore >= bestValScore){
+      bestValScore = finalScore;
+      bestQ = JSON.parse(JSON.stringify(Q));
+      bestQCoarse = JSON.parse(JSON.stringify(QCoarse));
+      bestVisits = { ...QVisits };
+      bestValAt = qEpisodes;
+    }
+    /* نامزدها: جدول آموزش‌دیدهٔ این اجرا (حریصانه و محافظه‌کارانه)، در حالت ادامه نسخهٔ
+       بهبودیافتهٔ قبلی، و نسخهٔ اولیهٔ برگرفته از استراتژی. بهترین نامزد روی همان ۳۰ نقشهٔ
+       مقایسه نگه داشته می‌شود؛ نسخهٔ اولیهٔ محافظه‌کارانه دقیقاً رفتار استراتژی را بازتولید
+       می‌کند، پس امتیاز بهبودیافته هیچ‌وقت از استراتژی اصلی کمتر نمی‌شود — و در حالت ادامه،
+       چون نسخهٔ قبلی هم نامزد است، امتیاز از اجرای قبلی هم کمتر نمی‌شود. */
+    const trainedTables = { Q, QCoarse, QVisits };
+    const rTrainedPure = evalAgent(st => QACT[qChoose(st, 0)], cap);
+    const rTrainedCons = evalAgent(st => conservativeChoose(st, rulesCopy), cap);
+    const cands = [
+      { tables: trainedTables, r: rTrainedPure, kind:"trained" },
+      { tables: trainedTables, r: rTrainedCons, kind:"trained" }
+    ];
+    if(prevSnapshot){
+      Q = JSON.parse(JSON.stringify(prevSnapshot.Q)); QCoarse = JSON.parse(JSON.stringify(prevSnapshot.QCoarse)); QVisits = { ...prevSnapshot.QVisits };
+      const rPrevPure = evalAgent(st => QACT[qChoose(st, 0)], cap);
+      const rPrevCons = evalAgent(st => conservativeChoose(st, rulesCopy), cap);
+      cands.push({ tables: prevSnapshot, r: rPrevPure, kind:"prev" }, { tables: prevSnapshot, r: rPrevCons, kind:"prev" });
+    }
+    Q = JSON.parse(JSON.stringify(initSnapshot.Q)); QCoarse = JSON.parse(JSON.stringify(initSnapshot.QCoarse)); QVisits = { ...initSnapshot.QVisits };
+    const rInitPure = evalAgent(st => QACT[qChoose(st, 0)], cap);
+    const rInitCons = evalAgent(st => conservativeChoose(st, rulesCopy), cap);
+    cands.push({ tables: initSnapshot, r: rInitPure, kind:"init" }, { tables: initSnapshot, r: rInitCons, kind:"init" });
+    cands.sort((a,b)=> b.r.score - a.r.score);
+    const winner = cands[0];
+    impQ = winner.tables.Q; impQCoarse = winner.tables.QCoarse; impQVisits = winner.tables.QVisits;
+    impTrained = true;
+    /* برگرداندن همهٔ وضعیت عامل مرحلهٔ ۲ سر جای خودش */
+    Q = saved.Q; QCoarse = saved.QCoarse; QVisits = saved.QVisits;
+    bestQ = saved.bestQ; bestQCoarse = saved.bestQCoarse; bestVisits = saved.bestVisits;
+    bestValScore = saved.bestValScore; bestValAt = saved.bestValAt; bestValEnvSig = saved.bestValEnvSig;
+    qEpisodes = saved.qEpisodes;
+    qTraining = false;
+    btnStates.forEach(pair => { $(pair[0]).disabled = pair[1]; });
+    btn.disabled = false;
+    contBtn.disabled = false;
+    $("impProg").style.width = "100%";
+    $("impInfo").textContent = (fromScratch ? "بهبود تمام شد" : "ادامهٔ یادگیری تمام شد") + ": امتیاز استراتژی‌ات روی نقشه‌های مقایسه از " + faNum(orig.score.toFixed(1)) + " به " + faNum(winner.r.score.toFixed(1)) + " رسید." +
+      (winner.kind === "init" ? " این بار آموزش از نسخهٔ اولیه جلو نزد و همان نسخهٔ برگرفته از استراتژی‌ات نگه داشته شد تا امتیازت کمتر نشود."
+       : winner.kind === "prev" ? " این بار ادامهٔ یادگیری از نسخهٔ بهبودیافتهٔ قبلی جلو نزد و همان نسخهٔ قبلی نگه داشته شد تا امتیازت کمتر نشود."
+       : " قانون‌های استراتژی بهبودیافته را پایین ببین و با قانون‌های خودت مقایسه کن.");
+    renderImpResults(orig, winner.r, winner.kind === "init");
+    renderImpModel();
+  }
+  function chunk(){
+    const t0 = Date.now();
+    while(ep < episodes && Date.now() - t0 < 40){
+      const progress = ep / Math.max(1, episodes - 1);
+      const eps = Math.max(epsMin, epsStart * Math.pow(epsMin / Math.max(epsMin, epsStart), progress));
+      runEpisode(null, 31000 + qEpisodes*3 + Math.floor(Math.random()*2), cap, true, eps);
+      qEpisodes++; ep++;
+      if(ep % 50 === 0) checkpointQ(cap);
+      $("impProg").style.width = Math.round(ep/episodes*100) + "%";
+      $("impInfo").textContent = (fromScratch ? "در حال بهبود استراتژی‌ات… مأموریت تمرینی " : "در حال ادامهٔ یادگیری… مأموریت تمرینی ") + faNum(ep) + " از " + faNum(episodes) + bestTxt();
+    }
+    if(ep < episodes) setTimeout(chunk, 0);
+    else finish();
+  }
+  setTimeout(chunk, 30);
+}
+$("impBtn").addEventListener("click", ()=> improveStrategy(true));
+$("impContBtn").addEventListener("click", ()=> improveStrategy(false));
+/* دراپ‌دان قانون‌های استراتژی بهبودیافته: پیش‌فرض بسته است؛ کلیک روی سربرگ، بدنه را باز و بسته می‌کند. */
+$("impModelToggle").addEventListener("click", ()=>{
+  const body = $("impModelBody"), arrow = $("impModelArrow"), btn = $("impModelToggle");
+  const open = body.hidden;
+  body.hidden = !open;
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  arrow.textContent = open ? "▴" : "▾";
+});
 
 /* ================= تغییر ناگهانی محیط ================= */
 const SHOCK_LABELS = { capacity:"ظرفیت حمل", maxTime:"زمان مأموریت", dangerCost:"هزینهٔ خطر", dangerCells:"خانه‌های خطرناک", obstacles:"موانع", chargeRate:"سرعت شارژ", startBattery:"باتری شروع" };
@@ -2021,6 +2275,7 @@ $("adminOverlay").addEventListener("click", e=>{ if(e.target === $("adminOverlay
 
 /* ================= مرحله‌بندی ================= */
 const STAGE_CODE = "1384";
+const STAGE3_CODE = "4831";
 const STAGE_KEY = "rescueMission.stage.v1";
 let currentStage = 1;
 function normalizeStageCode(v){
@@ -2030,20 +2285,24 @@ function normalizeStageCode(v){
     .trim();
 }
 function applyStage(stage){
-  currentStage = stage === 2 ? 2 : 1;
-  const locked = currentStage === 1;
+  currentStage = stage === 3 ? 3 : (stage === 2 ? 2 : 1);
+  const s2 = currentStage >= 2, s3 = currentStage === 3;
   /* در مرحلهٔ ۱ بخش «آزمایش بزرگ» (آموزش عامل، مقایسه و استراتژی مدل) و بخش
      «آزمایش تغییر محیط» (تغییر ناگهانی محیط، تنظیم سناریوها و بازگشت به محیط عادی) قفل‌اند؛
-     سازنده، صفحهٔ مأموریت زنده، بازرس تصمیم و بازپخش باز می‌مانند. */
-  const cp = $("comparePanel"); if(cp) cp.classList.toggle("stage-hidden", locked);
-  const sp = $("shockPanel"); if(sp) sp.classList.toggle("stage-hidden", locked);
-  const card = $("stageLockCard"); if(card) card.classList.toggle("stage-hidden", !locked);
-  const badge = $("stageBadge"); if(badge) badge.textContent = locked ? "مرحله ۱: ساخت استراتژی" : "مرحله ۲: آزمایش و مقایسه";
+     سازنده، صفحهٔ مأموریت زنده، بازرس تصمیم و بازپخش باز می‌مانند.
+     کارت قفل مرحلهٔ ۳ فقط وقتی دیده می‌شود که مرحلهٔ ۲ باز و مرحلهٔ ۳ هنوز قفل باشد؛
+     بخش «بهبود استراتژی من با یادگیری» فقط در مرحلهٔ ۳ باز است. */
+  const cp = $("comparePanel"); if(cp) cp.classList.toggle("stage-hidden", !s2);
+  const sp = $("shockPanel"); if(sp) sp.classList.toggle("stage-hidden", !s2);
+  const card = $("stageLockCard"); if(card) card.classList.toggle("stage-hidden", s2);
+  const card3 = $("stage3LockCard"); if(card3) card3.classList.toggle("stage-hidden", !(s2 && !s3));
+  const ip = $("improvePanel"); if(ip) ip.classList.toggle("stage-hidden", !s3);
+  const badge = $("stageBadge"); if(badge) badge.textContent = s3 ? "مرحله ۳: بهبود استراتژی" : (s2 ? "مرحله ۲: آزمایش و مقایسه" : "مرحله ۱: ساخت استراتژی");
   try { localStorage.setItem(STAGE_KEY, String(currentStage)); } catch(e){}
 }
 function loadStage(){
   let s = 1;
-  try { s = Number(localStorage.getItem(STAGE_KEY)) === 2 ? 2 : 1; } catch(e){}
+  try { const n = Number(localStorage.getItem(STAGE_KEY)); s = n === 3 ? 3 : (n === 2 ? 2 : 1); } catch(e){}
   applyStage(s);
 }
 function tryUnlockStage(){
@@ -2058,6 +2317,19 @@ function tryUnlockStage(){
 }
 $("stageUnlockBtn").addEventListener("click", tryUnlockStage);
 $("stageCodeInput").addEventListener("keydown", e=>{ if(e.key === "Enter") tryUnlockStage(); });
+function tryUnlockStage3(){
+  const inp = $("stage3CodeInput"), err = $("stage3CodeErr");
+  if(normalizeStageCode(inp.value) === STAGE3_CODE){
+    err.textContent = "";
+    inp.value = "";
+    applyStage(3);
+  } else {
+    err.textContent = "رمز درست نیست — از آموزگار بپرس.";
+  }
+}
+$("stage3UnlockBtn").addEventListener("click", tryUnlockStage3);
+$("stage3CodeInput").addEventListener("keydown", e=>{ if(e.key === "Enter") tryUnlockStage3(); });
+$("adminRelock2Btn").addEventListener("click", ()=>{ if(currentStage === 3) applyStage(2); closeAdmin(); });
 $("adminRelockBtn").addEventListener("click", ()=>{ applyStage(1); closeAdmin(); });
 
 /* ================= شروع ================= */
